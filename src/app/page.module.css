@@ -1498,6 +1498,230 @@
   align-content: start;
 }
 
+.progressView {
+  display: grid;
+  gap: 18px;
+}
+
+.progressProgramTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.progressProgramTabs button {
+  display: grid;
+  gap: 5px;
+  min-height: 74px;
+  padding: 16px 18px;
+  border: 1px solid rgba(23, 58, 138, 0.1);
+  border-radius: 14px;
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.progressProgramTabs button:hover,
+.progressProgramTabs .progressProgramTabActive {
+  border-color: rgba(94, 83, 255, 0.28);
+  background: rgba(94, 83, 255, 0.08);
+}
+
+.progressProgramTabs strong {
+  font-size: 18px;
+}
+
+.progressProgramTabs span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.progressStatGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.progressCard,
+.progressPanel {
+  border: 1px solid rgba(23, 58, 138, 0.1);
+  border-radius: 14px;
+  background: white;
+}
+
+.progressCard {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 118px;
+  padding: 18px;
+}
+
+.progressIcon {
+  width: 58px;
+  height: 58px;
+  padding: 14px;
+}
+
+.progressCard > div > span,
+.progressPanel .dashboardPanelHeader span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.progressCard strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.progressCard p,
+.progressCourseChart p,
+.progressNextStep p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.progressContentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 18px;
+}
+
+.progressPanel {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  padding: 20px;
+}
+
+.progressCourseChart {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+
+.progressCourseRing {
+  position: relative;
+  display: grid;
+  width: 150px;
+  height: 150px;
+  place-items: center;
+  border-radius: 999px;
+  background: conic-gradient(var(--royal) var(--progress), rgba(23, 58, 138, 0.1) 0);
+}
+
+.progressCourseRing::before {
+  position: absolute;
+  inset: 14px;
+  border-radius: inherit;
+  background: white;
+  content: "";
+}
+
+.progressCourseRing strong {
+  position: relative;
+  z-index: 1;
+  color: var(--blue);
+  font-size: 38px;
+  line-height: 1;
+}
+
+.progressCourseChart > div:last-child {
+  display: grid;
+  gap: 10px;
+}
+
+.progressCourseChart > div:last-child > strong {
+  color: var(--ink);
+  font-size: 22px;
+}
+
+.progressBarChart,
+.weakSpotList {
+  display: grid;
+  gap: 14px;
+}
+
+.progressBarChart > div,
+.weakSpotList > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(0, 2fr) 48px;
+  gap: 12px;
+  align-items: center;
+}
+
+.progressBarChart span,
+.weakSpotList span {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.progressBarChart div div {
+  height: 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(16, 32, 53, 0.08);
+}
+
+.progressBarChart i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--royal);
+}
+
+.progressBarChart strong,
+.weakSpotList strong {
+  color: var(--blue);
+  font-size: 14px;
+  text-align: right;
+}
+
+.weakSpotList .dashboardProgressRow span {
+  background: #f59a18;
+}
+
+.progressNextStep {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.progressNextStep h2 {
+  color: var(--ink);
+  font-size: 23px;
+}
+
+.progressNextStep button {
+  grid-column: 2;
+  justify-self: start;
+  min-height: 42px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--royal);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.progressNextStep button:hover {
+  background: var(--blue);
+}
+
 .dashboardPackageFlow .onlineLanguageTabs,
 .dashboardPackageFlow .onDemandLevels {
   width: 100%;
@@ -1778,6 +2002,29 @@
   font-size: 24px;
 }
 
+.lessonBlockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lessonBlockHeader button {
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--royal);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.lessonBlockHeader button:hover {
+  background: var(--blue);
+}
+
 .lessonExample {
   display: grid;
   gap: 6px;
@@ -1794,6 +2041,15 @@
 
 .lessonExample span:last-child {
   color: var(--muted);
+}
+
+.lessonVideo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  background: #0b1220;
+  object-fit: cover;
 }
 
 .vocabularyGrid {
@@ -1814,6 +2070,14 @@
   text-align: center;
 }
 
+.vocabularyWordRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .vocabularyCard strong {
   color: var(--blue);
   font-size: 20px;
@@ -1821,6 +2085,324 @@
 
 .vocabularyCard span {
   color: var(--muted);
+}
+
+.vocabularyAudioButton {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(23, 58, 138, 0.14);
+  border-radius: 999px;
+  background: rgba(23, 58, 138, 0.06);
+  color: var(--blue);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+
+.vocabularyAudioButton:hover {
+  border-color: rgba(23, 58, 138, 0.26);
+  background: rgba(23, 58, 138, 0.1);
+}
+
+.vocabularyAudioButton svg {
+  display: block;
+}
+
+.practiceOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(9, 18, 34, 0.46);
+  backdrop-filter: blur(10px);
+}
+
+.practiceDialog {
+  display: grid;
+  gap: 18px;
+  width: min(100%, 520px);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid rgba(23, 58, 138, 0.12);
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 24px 70px rgba(9, 18, 34, 0.28);
+}
+
+.practiceHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.practiceHeader span,
+.practicePrompt span,
+.practiceFooter span,
+.practiceResult span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.practiceHeader h3 {
+  color: var(--ink);
+  font-size: 24px;
+}
+
+.practiceHeader > button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(23, 58, 138, 0.08);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.practicePrompt {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(94, 83, 255, 0.08);
+  text-align: center;
+}
+
+.practicePrompt strong {
+  color: var(--blue);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.practiceWordRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.practiceWordRow .vocabularyAudioButton {
+  width: 34px;
+  height: 34px;
+  background: white;
+}
+
+.listeningButton {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  justify-self: center;
+  border: 1px solid rgba(23, 58, 138, 0.14);
+  border-radius: 999px;
+  background: white;
+  color: var(--blue);
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(46, 66, 200, 0.16);
+}
+
+.listeningButton:hover {
+  border-color: rgba(23, 58, 138, 0.28);
+  background: rgba(247, 249, 255, 0.96);
+}
+
+.listeningButton svg {
+  display: block;
+}
+
+.practiceOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.practiceOptions button {
+  min-height: 54px;
+  padding: 12px;
+  border: 1px solid rgba(23, 58, 138, 0.12);
+  border-radius: 12px;
+  background: rgba(247, 249, 255, 0.96);
+  color: var(--blue);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.practiceOptions button:hover:not(:disabled) {
+  background: rgba(94, 83, 255, 0.12);
+}
+
+.practiceOptions button:disabled {
+  cursor: default;
+}
+
+.practiceOptions .practiceOptionCorrect {
+  border-color: rgba(52, 199, 106, 0.4);
+  background: rgba(52, 199, 106, 0.14);
+  color: #176b3a;
+}
+
+.practiceOptions .practiceOptionWrong {
+  border-color: rgba(224, 65, 65, 0.42);
+  background: rgba(224, 65, 65, 0.12);
+  color: #9b2323;
+}
+
+.practiceFeedback {
+  color: var(--ink);
+  font-weight: 900;
+  text-align: center;
+}
+
+.practiceFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.practiceFooter button,
+.practiceResult button {
+  min-height: 42px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--blue);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.practiceFooter button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.practiceResult {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  padding: 22px;
+  text-align: center;
+}
+
+.gradeRing {
+  position: relative;
+  display: grid;
+  width: 150px;
+  height: 150px;
+  place-items: center;
+  border-radius: 999px;
+  background: conic-gradient(var(--royal) var(--grade), rgba(23, 58, 138, 0.1) 0);
+}
+
+.gradeRing::before {
+  position: absolute;
+  inset: 14px;
+  border-radius: inherit;
+  background: white;
+  content: "";
+}
+
+.gradeRing strong {
+  position: relative;
+  z-index: 1;
+  color: var(--blue);
+  font-size: 42px;
+  line-height: 1;
+}
+
+.exerciseGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.exerciseCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 116px;
+  padding: 18px;
+  border: 1px solid rgba(23, 58, 138, 0.1);
+  border-radius: 14px;
+  background: white;
+}
+
+.exerciseCard div {
+  display: grid;
+  gap: 6px;
+}
+
+.exerciseCard strong {
+  color: var(--ink);
+  font-size: 19px;
+}
+
+.exerciseCard span {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.exerciseCard button,
+.fillWordForm button {
+  min-height: 42px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--royal);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.exerciseCard button:hover,
+.fillWordForm button:hover:not(:disabled) {
+  background: var(--blue);
+}
+
+.fillWordForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.fillWordForm input {
+  min-height: 48px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(23, 58, 138, 0.14);
+  border-radius: 12px;
+  background: rgba(247, 249, 255, 0.96);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+}
+
+.fillWordForm input:focus {
+  border-color: rgba(23, 58, 138, 0.34);
+  outline: 0;
+}
+
+.fillWordForm button:disabled {
+  cursor: default;
+  opacity: 0.45;
 }
 
 .lessonQuiz {
@@ -1980,8 +2562,13 @@
   .authPage,
   .dashboardShell,
   .dashboardContentGrid,
-  .lessonPlayer {
+  .lessonPlayer,
+  .progressContentGrid {
     grid-template-columns: 1fr;
+  }
+
+  .progressStatGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .dashboardSidebar {
@@ -2078,7 +2665,37 @@
   .dashboardQuizGrid,
   .dashboardPackageFlow .onlineLanguageTabs,
   .dashboardPackageFlow .onDemandLevels,
-  .vocabularyGrid {
+  .vocabularyGrid,
+  .exerciseGrid,
+  .progressStatGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .progressCourseChart,
+  .progressBarChart > div,
+  .weakSpotList > div,
+  .progressProgramTabs {
+    grid-template-columns: 1fr;
+  }
+
+  .progressCourseRing {
+    justify-self: center;
+  }
+
+  .progressBarChart strong,
+  .weakSpotList strong {
+    text-align: left;
+  }
+
+  .practiceOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .practiceFooter,
+  .exerciseCard,
+  .fillWordForm {
+    align-items: stretch;
+    flex-direction: column;
     grid-template-columns: 1fr;
   }
 

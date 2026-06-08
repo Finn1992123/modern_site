@@ -237,6 +237,55 @@ const quizzes = [
   { title: "Reading Practice 1", course: "B2 Cambridge", score: "65%", points: "13/20" },
 ];
 
+const progressPrograms = [
+  {
+    id: "english-a1",
+    title: "Αγγλικά A1",
+    progress: 35,
+    completedLessons: 4,
+    totalLessons: 24,
+    averageGrade: 82,
+    vocabulary: 35,
+    streak: 7,
+    studyTime: "2ώ 45λ",
+    nextGoal: "Unit 1 review",
+    nextStep: "Κάνε ξανά την ακουστική άσκηση και μετά προχώρα στο επόμενο μάθημα.",
+    recentGrades: [
+      { label: "Λεξιλόγιο", value: 80 },
+      { label: "Πολλαπλής επιλογής", value: 67 },
+      { label: "Άκου και διάλεξε", value: 100 },
+    ],
+    weakSpots: [
+      { label: "father", value: 48 },
+      { label: "sister", value: 58 },
+      { label: "This is my...", value: 64 },
+    ],
+  },
+  {
+    id: "french-b2",
+    title: "Γαλλικά B2",
+    progress: 62,
+    completedLessons: 15,
+    totalLessons: 24,
+    averageGrade: 76,
+    vocabulary: 128,
+    streak: 4,
+    studyTime: "1ώ 30λ",
+    nextGoal: "Compréhension orale",
+    nextStep: "Κάνε επανάληψη στην ακουστική κατανόηση και γράψε μία σύντομη περίληψη.",
+    recentGrades: [
+      { label: "Vocabulaire", value: 74 },
+      { label: "Compréhension", value: 81 },
+      { label: "Grammaire", value: 70 },
+    ],
+    weakSpots: [
+      { label: "subjonctif", value: 52 },
+      { label: "connecteurs", value: 60 },
+      { label: "écoute rapide", value: 46 },
+    ],
+  },
+];
+
 const lessonUnits = [
   {
     title: "Unit 1",
@@ -297,21 +346,56 @@ const vocabularyItems = [
 const quizQuestions = [
   {
     question: "How do we say «μητέρα» in English?",
-    answers: ["mother", "father", "brother"],
+    answers: ["mother", "father", "brother", "sister"],
   },
   {
     question: "Choose the correct sentence.",
-    answers: ["This is my family.", "This my is family.", "Family this is my."],
+    answers: ["This is my family.", "This my is family.", "Family this is my.", "My family this is."],
   },
   {
     question: "What does «sister» mean?",
-    answers: ["αδερφή", "πατέρας", "οικογένεια"],
+    answers: ["αδερφή", "πατέρας", "οικογένεια", "αδερφός"],
   },
 ];
 
+const fillWordQuestions = [
+  {
+    sentence: "This is my _____.",
+    hint: "μητέρα",
+    answer: "mother",
+  },
+  {
+    sentence: "This is my _____.",
+    hint: "πατέρας",
+    answer: "father",
+  },
+  {
+    sentence: "This is my _____.",
+    hint: "αδερφή",
+    answer: "sister",
+  },
+];
+
+const listeningQuestions = [
+  {
+    word: "mother",
+    answers: ["mother", "father", "sister", "family"],
+  },
+  {
+    word: "brother",
+    answers: ["brother", "mother", "father", "sister"],
+  },
+  {
+    word: "family",
+    answers: ["family", "father", "brother", "mother"],
+  },
+];
+
+type ExerciseMode = "multipleChoice" | "fillWord" | "listening";
+
 export default function DashboardPage() {
   const [activeView, setActiveView] = useState<
-    "dashboard" | "myCourses" | "packages" | "lesson"
+    "dashboard" | "myCourses" | "packages" | "progress" | "lesson"
   >("dashboard");
   const [activeLanguage, setActiveLanguage] = useState(onlineLanguages[0]);
   const [profile, setProfile] = useState<Profile>({ full_name: "Μαθητή", email: "" });
@@ -321,6 +405,7 @@ export default function DashboardPage() {
   const isDashboard = activeView === "dashboard";
   const isMyCourses = activeView === "myCourses";
   const isPackages = activeView === "packages";
+  const isProgress = activeView === "progress";
   const isLesson = activeView === "lesson";
   const displayName = profile.full_name.trim() || "Μαθητή";
   const userInitial = displayName.charAt(0).toUpperCase();
@@ -426,7 +511,13 @@ export default function DashboardPage() {
           >
             Αγόρασε πακέτο
           </button>
-          <a href="#progress">Πρόοδος</a>
+          <button
+            className={isProgress ? styles.dashboardMenuActive : ""}
+            type="button"
+            onClick={() => setActiveView("progress")}
+          >
+            Πρόοδος
+          </button>
           <a href="#quizzes">Quizzes / Tests</a>
           <a href="#certificates">Πιστοποιητικά</a>
           <a href="#settings">Ρυθμίσεις</a>
@@ -453,8 +544,10 @@ export default function DashboardPage() {
                 ? `Καλώς ήρθες πίσω, ${displayName}!`
                 : isMyCourses
                   ? "Τα μαθήματά μου"
-                  : isLesson
-                    ? "Lesson 4: This is my family"
+                : isLesson
+                  ? "Lesson 4: This is my family"
+                  : isProgress
+                    ? "Πρόοδος"
                     : "Αγόρασε πακέτο"}
             </h1>
             <p>
@@ -464,7 +557,9 @@ export default function DashboardPage() {
                   ? "Δες όλα τα ενεργά μαθήματα και συνέχισε από εκεί που έμεινες."
                   : isLesson
                     ? "Μάθε λεξιλόγιο για την οικογένεια και κάνε ένα σύντομο quiz."
-                    : "Διάλεξε νέο On Demand πακέτο χωρίς να φύγεις από το dashboard."}
+                    : isProgress
+                      ? "Δες την πορεία σου, τους βαθμούς και τι χρειάζεται επανάληψη."
+                      : "Διάλεξε νέο On Demand πακέτο χωρίς να φύγεις από το dashboard."}
             </p>
           </div>
           <div className={styles.dashboardTopActions}>
@@ -543,6 +638,8 @@ export default function DashboardPage() {
           </section>
         ) : isLesson ? (
           <LessonPlayer onBack={() => setActiveView("dashboard")} />
+        ) : isProgress ? (
+          <DashboardProgress />
         ) : (
           <section className={styles.dashboardPackageView}>
             <div className={styles.dashboardPanelHeader}>
@@ -630,11 +727,154 @@ function DashboardCourses({
 
 function LessonPlayer({ onBack }: { onBack: () => void }) {
   const [openUnits, setOpenUnits] = useState([0]);
+  const [practiceOpen, setPracticeOpen] = useState(false);
+  const [practiceIndex, setPracticeIndex] = useState(0);
+  const [selectedPracticeAnswer, setSelectedPracticeAnswer] = useState<string | null>(null);
+  const [practiceScore, setPracticeScore] = useState(0);
+  const [practiceFinished, setPracticeFinished] = useState(false);
+  const [exerciseOpen, setExerciseOpen] = useState(false);
+  const [exerciseMode, setExerciseMode] = useState<ExerciseMode>("multipleChoice");
+  const [exerciseIndex, setExerciseIndex] = useState(0);
+  const [selectedExerciseAnswer, setSelectedExerciseAnswer] = useState<string | null>(null);
+  const [fillWordAnswer, setFillWordAnswer] = useState("");
+  const [exerciseScore, setExerciseScore] = useState(0);
+  const [exerciseFinished, setExerciseFinished] = useState(false);
+  const [exerciseSubmitted, setExerciseSubmitted] = useState(false);
+  const currentPracticeItem = vocabularyItems[practiceIndex];
+  const practiceOptions = currentPracticeItem
+    ? [
+        currentPracticeItem.translation,
+        ...vocabularyItems
+          .filter((item) => item.word !== currentPracticeItem.word)
+          .map((item) => item.translation)
+          .slice(0, 3),
+      ].map((_, index, options) => options[(index + practiceIndex) % options.length])
+    : [];
+  const currentExerciseTotal =
+    exerciseMode === "multipleChoice"
+      ? quizQuestions.length
+      : exerciseMode === "fillWord"
+        ? fillWordQuestions.length
+        : listeningQuestions.length;
+  const currentQuizQuestion = quizQuestions[exerciseIndex];
+  const currentFillQuestion = fillWordQuestions[exerciseIndex];
+  const currentListeningQuestion = listeningQuestions[exerciseIndex];
+  const practiceGrade = Math.round((practiceScore / vocabularyItems.length) * 100);
+  const exerciseGrade = Math.round((exerciseScore / currentExerciseTotal) * 100);
 
   function toggleUnit(index: number) {
     setOpenUnits((current) =>
       current.includes(index) ? current.filter((item) => item !== index) : [...current, index],
     );
+  }
+
+  function speakWord(word: string) {
+    if (!("speechSynthesis" in window)) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = "en-US";
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function startPractice() {
+    setPracticeIndex(0);
+    setSelectedPracticeAnswer(null);
+    setPracticeScore(0);
+    setPracticeFinished(false);
+    setPracticeOpen(true);
+  }
+
+  function closePractice() {
+    setPracticeOpen(false);
+  }
+
+  function choosePracticeAnswer(answer: string) {
+    if (selectedPracticeAnswer || !currentPracticeItem) {
+      return;
+    }
+
+    setSelectedPracticeAnswer(answer);
+
+    if (answer === currentPracticeItem.translation) {
+      setPracticeScore((score) => score + 1);
+    }
+  }
+
+  function goToNextPracticeWord() {
+    if (practiceIndex === vocabularyItems.length - 1) {
+      setPracticeFinished(true);
+      return;
+    }
+
+    setPracticeIndex((index) => index + 1);
+    setSelectedPracticeAnswer(null);
+  }
+
+  function startExercise(mode: ExerciseMode) {
+    setExerciseMode(mode);
+    setExerciseIndex(0);
+    setSelectedExerciseAnswer(null);
+    setFillWordAnswer("");
+    setExerciseScore(0);
+    setExerciseFinished(false);
+    setExerciseSubmitted(false);
+    setExerciseOpen(true);
+  }
+
+  function closeExercise() {
+    setExerciseOpen(false);
+  }
+
+  function chooseExerciseAnswer(answer: string) {
+    if (exerciseSubmitted) {
+      return;
+    }
+
+    const correctAnswer =
+      exerciseMode === "multipleChoice"
+        ? currentQuizQuestion?.answers[0]
+        : currentListeningQuestion?.answers[0];
+
+    if (!correctAnswer) {
+      return;
+    }
+
+    setSelectedExerciseAnswer(answer);
+    setExerciseSubmitted(true);
+
+    if (answer === correctAnswer) {
+      setExerciseScore((score) => score + 1);
+    }
+  }
+
+  function submitFillWordAnswer() {
+    if (exerciseSubmitted || exerciseMode !== "fillWord" || !currentFillQuestion) {
+      return;
+    }
+
+    const normalizedAnswer = fillWordAnswer.trim().toLowerCase();
+    setExerciseSubmitted(true);
+
+    if (normalizedAnswer === currentFillQuestion.answer.toLowerCase()) {
+      setExerciseScore((score) => score + 1);
+    }
+  }
+
+  function goToNextExerciseQuestion() {
+    if (exerciseIndex === currentExerciseTotal - 1) {
+      setExerciseFinished(true);
+      return;
+    }
+
+    setExerciseIndex((index) => index + 1);
+    setSelectedExerciseAnswer(null);
+    setFillWordAnswer("");
+    setExerciseSubmitted(false);
   }
 
   return (
@@ -701,48 +941,456 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
         </div>
 
         <section className={styles.lessonBlock}>
-          <h3>Θεωρία</h3>
-          <p>
-            Χρησιμοποιούμε τη φράση <strong>This is my...</strong> όταν θέλουμε
-            να παρουσιάσουμε κάποιον δικό μας άνθρωπο.
-          </p>
-          <div className={styles.lessonExample}>
-            <span>This is my mother.</span>
-            <span>Αυτή είναι η μητέρα μου.</span>
-          </div>
+          <video className={styles.lessonVideo} controls preload="metadata">
+            <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4" type="video/mp4" />
+          </video>
         </section>
 
         <section className={styles.lessonBlock}>
-          <h3>Λεξιλόγιο</h3>
+          <div className={styles.lessonBlockHeader}>
+            <h3>Λεξιλόγιο</h3>
+            <button type="button" onClick={startPractice}>
+              Εξάσκηση
+            </button>
+          </div>
           <div className={styles.vocabularyGrid}>
             {vocabularyItems.map((item) => (
               <div className={styles.vocabularyCard} key={item.word}>
-                <strong>{item.word}</strong>
+                <div className={styles.vocabularyWordRow}>
+                  <strong>{item.word}</strong>
+                  <button
+                    aria-label={`Play pronunciation for ${item.word}`}
+                    className={styles.vocabularyAudioButton}
+                    onClick={() => speakWord(item.word)}
+                    title={`Play pronunciation for ${item.word}`}
+                    type="button"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      fill="none"
+                      height="17"
+                      viewBox="0 0 24 24"
+                      width="17"
+                    >
+                      <path
+                        d="M4 9v6h4l5 4V5L8 9H4Z"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M16 9.5a4 4 0 0 1 0 5"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M18.5 7a7 7 0 0 1 0 10"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  </button>
+                </div>
                 <span>{item.translation}</span>
               </div>
             ))}
           </div>
         </section>
 
-        <section className={styles.lessonBlock}>
-          <h3>Mini quiz</h3>
-          <div className={styles.lessonQuiz}>
-            {quizQuestions.map((item, index) => (
-              <div className={styles.lessonQuestion} key={item.question}>
-                <strong>
-                  {index + 1}. {item.question}
-                </strong>
+        {practiceOpen ? (
+          <div
+            aria-labelledby="vocabulary-practice-title"
+            aria-modal="true"
+            className={styles.practiceOverlay}
+            role="dialog"
+          >
+            <div className={styles.practiceDialog}>
+              <div className={styles.practiceHeader}>
                 <div>
-                  {item.answers.map((answer) => (
-                    <button key={answer} type="button">
-                      {answer}
-                    </button>
-                  ))}
+                  <span>
+                    {practiceFinished
+                      ? "Ολοκληρώθηκε"
+                      : `${practiceIndex + 1}/${vocabularyItems.length}`}
+                  </span>
+                  <h3 id="vocabulary-practice-title">Εξάσκηση λεξιλογίου</h3>
                 </div>
+                <button aria-label="Κλείσιμο" type="button" onClick={closePractice}>
+                  ×
+                </button>
               </div>
-            ))}
+
+              {practiceFinished ? (
+                <div className={styles.practiceResult}>
+                  <div
+                    aria-label={`Βαθμός ${practiceGrade}%`}
+                    className={styles.gradeRing}
+                    style={{ "--grade": `${practiceGrade * 3.6}deg` } as React.CSSProperties}
+                  >
+                    <strong>{practiceGrade}%</strong>
+                  </div>
+                  <button type="button" onClick={startPractice}>
+                    Ξανά
+                  </button>
+                </div>
+              ) : currentPracticeItem ? (
+                <>
+                  <div className={styles.practicePrompt}>
+                    <span>Βρες τη σωστή μετάφραση</span>
+                    <div className={styles.practiceWordRow}>
+                      <strong>{currentPracticeItem.word}</strong>
+                      <button
+                        aria-label={`Play pronunciation for ${currentPracticeItem.word}`}
+                        className={styles.vocabularyAudioButton}
+                        onClick={() => speakWord(currentPracticeItem.word)}
+                        title={`Play pronunciation for ${currentPracticeItem.word}`}
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          fill="none"
+                          height="17"
+                          viewBox="0 0 24 24"
+                          width="17"
+                        >
+                          <path
+                            d="M4 9v6h4l5 4V5L8 9H4Z"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                          />
+                          <path
+                            d="M16 9.5a4 4 0 0 1 0 5"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeWidth="2"
+                          />
+                          <path
+                            d="M18.5 7a7 7 0 0 1 0 10"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeWidth="2"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.practiceOptions}>
+                    {practiceOptions.map((answer) => {
+                      const isSelected = selectedPracticeAnswer === answer;
+                      const isCorrect = answer === currentPracticeItem.translation;
+                      const showCorrect = selectedPracticeAnswer && isCorrect;
+                      const showWrong = isSelected && !isCorrect;
+
+                      return (
+                        <button
+                          className={`${showCorrect ? styles.practiceOptionCorrect : ""} ${
+                            showWrong ? styles.practiceOptionWrong : ""
+                          }`}
+                          disabled={Boolean(selectedPracticeAnswer)}
+                          key={answer}
+                          onClick={() => choosePracticeAnswer(answer)}
+                          type="button"
+                        >
+                          {answer}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {selectedPracticeAnswer ? (
+                    <div className={styles.practiceFeedback}>
+                      {selectedPracticeAnswer === currentPracticeItem.translation
+                        ? "Σωστά"
+                        : `Λάθος. Σωστή απάντηση: ${currentPracticeItem.translation}`}
+                    </div>
+                  ) : null}
+
+                  <div className={styles.practiceFooter}>
+                    <span>
+                      Score: {practiceScore}/{vocabularyItems.length}
+                    </span>
+                    <button
+                      disabled={!selectedPracticeAnswer}
+                      onClick={goToNextPracticeWord}
+                      type="button"
+                    >
+                      {practiceIndex === vocabularyItems.length - 1 ? "Τέλος" : "Επόμενο"}
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        <section className={styles.lessonBlock}>
+          <h3>Ασκήσεις</h3>
+          <div className={styles.exerciseGrid}>
+            <article className={styles.exerciseCard}>
+              <div>
+                <strong>Πολλαπλής επιλογής</strong>
+                <span>Διάλεξε τη σωστή απάντηση.</span>
+              </div>
+              <button type="button" onClick={() => startExercise("multipleChoice")}>
+                Έναρξη
+              </button>
+            </article>
+
+            <article className={styles.exerciseCard}>
+              <div>
+                <strong>Συμπλήρωσε τη λέξη</strong>
+                <span>Γράψε τη λέξη που λείπει.</span>
+              </div>
+              <button type="button" onClick={() => startExercise("fillWord")}>
+                Έναρξη
+              </button>
+            </article>
+
+            <article className={styles.exerciseCard}>
+              <div>
+                <strong>Άκου και διάλεξε</strong>
+                <span>Άκου τη λέξη και βρες τη σωστή.</span>
+              </div>
+              <button type="button" onClick={() => startExercise("listening")}>
+                Έναρξη
+              </button>
+            </article>
           </div>
         </section>
+
+        {exerciseOpen ? (
+          <div
+            aria-labelledby="exercise-title"
+            aria-modal="true"
+            className={styles.practiceOverlay}
+            role="dialog"
+          >
+            <div className={styles.practiceDialog}>
+              <div className={styles.practiceHeader}>
+                <div>
+                  <span>
+                    {exerciseFinished ? "Ολοκληρώθηκε" : `${exerciseIndex + 1}/${currentExerciseTotal}`}
+                  </span>
+                  <h3 id="exercise-title">
+                    {exerciseMode === "multipleChoice"
+                      ? "Πολλαπλής επιλογής"
+                      : exerciseMode === "fillWord"
+                        ? "Συμπλήρωσε τη λέξη"
+                        : "Άκου και διάλεξε"}
+                  </h3>
+                </div>
+                <button aria-label="Κλείσιμο" type="button" onClick={closeExercise}>
+                  ×
+                </button>
+              </div>
+
+              {exerciseFinished ? (
+                <div className={styles.practiceResult}>
+                  <div
+                    aria-label={`Βαθμός ${exerciseGrade}%`}
+                    className={styles.gradeRing}
+                    style={{ "--grade": `${exerciseGrade * 3.6}deg` } as React.CSSProperties}
+                  >
+                    <strong>{exerciseGrade}%</strong>
+                  </div>
+                  <button type="button" onClick={() => startExercise(exerciseMode)}>
+                    Ξανά
+                  </button>
+                </div>
+              ) : exerciseMode === "multipleChoice" && currentQuizQuestion ? (
+                <>
+                  <div className={styles.practicePrompt}>
+                    <span>Διάλεξε τη σωστή απάντηση</span>
+                    <strong>{currentQuizQuestion.question}</strong>
+                  </div>
+
+                  <div className={styles.practiceOptions}>
+                    {currentQuizQuestion.answers.map((answer) => {
+                      const isSelected = selectedExerciseAnswer === answer;
+                      const isCorrect = answer === currentQuizQuestion.answers[0];
+                      const showCorrect = exerciseSubmitted && isCorrect;
+                      const showWrong = isSelected && !isCorrect;
+
+                      return (
+                        <button
+                          className={`${showCorrect ? styles.practiceOptionCorrect : ""} ${
+                            showWrong ? styles.practiceOptionWrong : ""
+                          }`}
+                          disabled={exerciseSubmitted}
+                          key={answer}
+                          onClick={() => chooseExerciseAnswer(answer)}
+                          type="button"
+                        >
+                          {answer}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {exerciseSubmitted ? (
+                    <div className={styles.practiceFeedback}>
+                      {selectedExerciseAnswer === currentQuizQuestion.answers[0]
+                        ? "Σωστά"
+                        : `Λάθος. Σωστή απάντηση: ${currentQuizQuestion.answers[0]}`}
+                    </div>
+                  ) : null}
+
+                  <div className={styles.practiceFooter}>
+                    <span>
+                      Score: {exerciseScore}/{currentExerciseTotal}
+                    </span>
+                    <button
+                      disabled={!exerciseSubmitted}
+                      onClick={goToNextExerciseQuestion}
+                      type="button"
+                    >
+                      {exerciseIndex === currentExerciseTotal - 1 ? "Τέλος" : "Επόμενο"}
+                    </button>
+                  </div>
+                </>
+              ) : exerciseMode === "fillWord" && currentFillQuestion ? (
+                <>
+                  <div className={styles.practicePrompt}>
+                    <span>Συμπλήρωσε τη λέξη για: {currentFillQuestion.hint}</span>
+                    <strong>{currentFillQuestion.sentence}</strong>
+                  </div>
+
+                  <div className={styles.fillWordForm}>
+                    <input
+                      disabled={exerciseSubmitted}
+                      onChange={(event) => setFillWordAnswer(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          submitFillWordAnswer();
+                        }
+                      }}
+                      placeholder="Γράψε εδώ"
+                      type="text"
+                      value={fillWordAnswer}
+                    />
+                    <button
+                      disabled={exerciseSubmitted || !fillWordAnswer.trim()}
+                      onClick={submitFillWordAnswer}
+                      type="button"
+                    >
+                      Έλεγχος
+                    </button>
+                  </div>
+
+                  {exerciseSubmitted ? (
+                    <div className={styles.practiceFeedback}>
+                      {fillWordAnswer.trim().toLowerCase() === currentFillQuestion.answer.toLowerCase()
+                        ? "Σωστά"
+                        : `Λάθος. Σωστή απάντηση: ${currentFillQuestion.answer}`}
+                    </div>
+                  ) : null}
+
+                  <div className={styles.practiceFooter}>
+                    <span>
+                      Score: {exerciseScore}/{currentExerciseTotal}
+                    </span>
+                    <button
+                      disabled={!exerciseSubmitted}
+                      onClick={goToNextExerciseQuestion}
+                      type="button"
+                    >
+                      {exerciseIndex === currentExerciseTotal - 1 ? "Τέλος" : "Επόμενο"}
+                    </button>
+                  </div>
+                </>
+              ) : exerciseMode === "listening" && currentListeningQuestion ? (
+                <>
+                  <div className={styles.practicePrompt}>
+                    <span>Πάτησε το ηχείο και διάλεξε τη λέξη που άκουσες</span>
+                    <button
+                      aria-label="Άκου τη λέξη"
+                      className={styles.listeningButton}
+                      onClick={() => speakWord(currentListeningQuestion.word)}
+                      type="button"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        fill="none"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        width="28"
+                      >
+                        <path
+                          d="M4 9v6h4l5 4V5L8 9H4Z"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                        />
+                        <path
+                          d="M16 9.5a4 4 0 0 1 0 5"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeWidth="2"
+                        />
+                        <path
+                          d="M18.5 7a7 7 0 0 1 0 10"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className={styles.practiceOptions}>
+                    {currentListeningQuestion.answers.map((answer) => {
+                      const isSelected = selectedExerciseAnswer === answer;
+                      const isCorrect = answer === currentListeningQuestion.answers[0];
+                      const showCorrect = exerciseSubmitted && isCorrect;
+                      const showWrong = isSelected && !isCorrect;
+
+                      return (
+                        <button
+                          className={`${showCorrect ? styles.practiceOptionCorrect : ""} ${
+                            showWrong ? styles.practiceOptionWrong : ""
+                          }`}
+                          disabled={exerciseSubmitted}
+                          key={answer}
+                          onClick={() => chooseExerciseAnswer(answer)}
+                          type="button"
+                        >
+                          {answer}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {exerciseSubmitted ? (
+                    <div className={styles.practiceFeedback}>
+                      {selectedExerciseAnswer === currentListeningQuestion.answers[0]
+                        ? "Σωστά"
+                        : `Λάθος. Σωστή απάντηση: ${currentListeningQuestion.answers[0]}`}
+                    </div>
+                  ) : null}
+
+                  <div className={styles.practiceFooter}>
+                    <span>
+                      Score: {exerciseScore}/{currentExerciseTotal}
+                    </span>
+                    <button
+                      disabled={!exerciseSubmitted}
+                      onClick={goToNextExerciseQuestion}
+                      type="button"
+                    >
+                      {exerciseIndex === currentExerciseTotal - 1 ? "Τέλος" : "Επόμενο"}
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         <div className={styles.lessonActions}>
           <button type="button">Ολοκλήρωση μαθήματος</button>
@@ -846,6 +1494,229 @@ function DashboardPackages({
         </Link>
       ))}
     </div>
+  );
+}
+
+function DashboardProgress() {
+  const [selectedProgramId, setSelectedProgramId] = useState(progressPrograms[0].id);
+  const selectedProgram =
+    progressPrograms.find((program) => program.id === selectedProgramId) ?? progressPrograms[0];
+  const progressStats = [
+    {
+      icon: "progress",
+      tone: "purple",
+      label: "Συνολική πρόοδος",
+      value: `${selectedProgram.progress}%`,
+      note: selectedProgram.title,
+    },
+    {
+      icon: "lessons",
+      tone: "blue",
+      label: "Μαθήματα",
+      value: `${selectedProgram.completedLessons}/${selectedProgram.totalLessons}`,
+      note: "ολοκληρωμένα μαθήματα",
+    },
+    {
+      icon: "grade",
+      tone: "green",
+      label: "Μέσος βαθμός",
+      value: `${selectedProgram.averageGrade}%`,
+      note: "από ασκήσεις και tests",
+    },
+    {
+      icon: "vocabulary",
+      tone: "orange",
+      label: "Λεξιλόγιο",
+      value: String(selectedProgram.vocabulary),
+      note: "λέξεις εξασκημένες",
+    },
+    {
+      icon: "streak",
+      tone: "orange",
+      label: "Streak",
+      value: String(selectedProgram.streak),
+      note: "συνεχόμενες ημέρες",
+    },
+    {
+      icon: "time",
+      tone: "blue",
+      label: "Χρόνος μελέτης",
+      value: selectedProgram.studyTime,
+      note: "αυτή την εβδομάδα",
+    },
+  ];
+
+  return (
+    <section className={styles.progressView} id="progress">
+      <div className={styles.progressProgramTabs} role="tablist" aria-label="Προγράμματα">
+        {progressPrograms.map((program) => {
+          const isActive = program.id === selectedProgram.id;
+
+          return (
+            <button
+              aria-selected={isActive}
+              className={isActive ? styles.progressProgramTabActive : ""}
+              key={program.id}
+              onClick={() => setSelectedProgramId(program.id)}
+              role="tab"
+              type="button"
+            >
+              <strong>{program.title}</strong>
+              <span>{program.progress}% πρόοδος</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className={styles.progressStatGrid}>
+        {progressStats.map((item) => (
+          <article className={styles.progressCard} key={item.label}>
+            <span
+              className={`${styles.dashboardStatIconWrap} ${
+                styles[`dashboardStatIcon${item.tone}` as keyof typeof styles]
+              }`}
+            >
+              <ProgressIcon type={item.icon} />
+            </span>
+            <div>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <p>{item.note}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className={styles.progressContentGrid}>
+        <section className={styles.progressPanel}>
+          <div className={styles.dashboardPanelHeader}>
+            <h2>Συνολική πρόοδος</h2>
+            <span>{selectedProgram.progress}%</span>
+          </div>
+          <div className={styles.progressCourseChart}>
+            <div
+              className={styles.progressCourseRing}
+              style={{ "--progress": `${selectedProgram.progress * 3.6}deg` } as React.CSSProperties}
+            >
+              <strong>{selectedProgram.progress}%</strong>
+            </div>
+            <div>
+              <strong>{selectedProgram.title}</strong>
+              <p>
+                {selectedProgram.completedLessons} από {selectedProgram.totalLessons} μαθήματα
+                ολοκληρώθηκαν. Επόμενος στόχος: {selectedProgram.nextGoal}.
+              </p>
+              <div className={styles.dashboardProgressRow}>
+                <span style={{ width: `${selectedProgram.progress}%` }} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.progressPanel}>
+          <div className={styles.dashboardPanelHeader}>
+            <h2>Τελευταίες βαθμολογίες</h2>
+            <span>Μέσος {selectedProgram.averageGrade}%</span>
+          </div>
+          <div className={styles.progressBarChart}>
+            {selectedProgram.recentGrades.map((item) => (
+              <div key={item.label}>
+                <span>{item.label}</span>
+                <div>
+                  <i style={{ width: `${item.value}%` }} />
+                </div>
+                <strong>{item.value}%</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className={styles.progressContentGrid}>
+        <section className={styles.progressPanel}>
+          <div className={styles.dashboardPanelHeader}>
+            <h2>Χρειάζεται επανάληψη</h2>
+            <span>Αδύναμα σημεία</span>
+          </div>
+          <div className={styles.weakSpotList}>
+            {selectedProgram.weakSpots.map((item) => (
+              <div key={item.label}>
+                <span>{item.label}</span>
+                <div className={styles.dashboardProgressRow}>
+                  <span style={{ width: `${item.value}%` }} />
+                </div>
+                <strong>{item.value}%</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.progressPanel}>
+          <div className={styles.progressNextStep}>
+            <span
+              className={`${styles.dashboardStatIconWrap} ${styles.dashboardStatIconpurple}`}
+            >
+              <ProgressIcon type="target" />
+            </span>
+            <div>
+              <h2>Επόμενο βήμα</h2>
+              <p>{selectedProgram.nextStep}</p>
+            </div>
+            <button type="button">Συνέχεια</button>
+          </div>
+        </section>
+      </div>
+    </section>
+  );
+}
+
+function ProgressIcon({ type }: { type: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={styles.progressIcon}
+      fill="none"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {type === "progress" ? (
+        <>
+          <path d="M4 19V5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+          <path d="M4 19h16" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+          <path d="m7 15 3-4 3 2 4-6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+        </>
+      ) : null}
+      {type === "lessons" ? (
+        <path d="M5 5.5c0-1 .8-1.8 1.8-1.8H10c1.1 0 2 .9 2 2v15c0-1.1-.9-2-2-2H6.8c-1 0-1.8-.8-1.8-1.8V5.5Zm14 0c0-1-.8-1.8-1.8-1.8H14c-1.1 0-2 .9-2 2v15c0-1.1.9-2 2-2h3.2c1 0 1.8-.8 1.8-1.8V5.5Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.8" />
+      ) : null}
+      {type === "grade" ? (
+        <>
+          <path d="M12 3.5 14.6 9l5.9.9-4.2 4.1 1 5.8L12 17l-5.3 2.8 1-5.8-4.2-4.1L9.4 9 12 3.5Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.8" />
+        </>
+      ) : null}
+      {type === "vocabulary" ? (
+        <>
+          <path d="M5 6h14M5 12h14M5 18h8" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+          <path d="M8 4v16" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+        </>
+      ) : null}
+      {type === "streak" ? (
+        <path d="M12 21c3.4 0 6-2.4 6-5.9 0-2.8-1.5-4.9-3.7-7.1-.3 1.7-1 2.8-2 3.5.2-2.4-.7-5-3.1-7.5-.2 3.2-2.6 5.4-3.4 7.8-.3.8-.5 1.7-.5 2.6C5.3 18.3 8.3 21 12 21Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.8" />
+      ) : null}
+      {type === "time" ? (
+        <>
+          <path d="M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M12 8v4l3 2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+        </>
+      ) : null}
+      {type === "target" ? (
+        <>
+          <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" stroke="currentColor" strokeWidth="1.8" />
+        </>
+      ) : null}
+    </svg>
   );
 }
 
