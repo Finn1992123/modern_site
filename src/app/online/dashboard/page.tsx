@@ -13,8 +13,10 @@ type Profile = {
 
 type CourseAccessRow = {
   id: string;
+  course_id: string;
   expires_at: string;
   on_demand_courses: {
+    id: string;
     language_code: string;
     language_name: string;
     level: string;
@@ -25,18 +27,113 @@ type CourseAccessRow = {
 type SupabaseCourseAccessRow = Omit<CourseAccessRow, "on_demand_courses"> & {
   on_demand_courses:
     | {
+        id: string;
         language_code: string;
         language_name: string;
         level: string;
         title: string;
       }
     | {
+        id: string;
         language_code: string;
         language_name: string;
         level: string;
         title: string;
       }[]
     | null;
+};
+
+type CourseUnitRow = {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string | null;
+  sort_order: number;
+};
+
+type CourseLessonRow = {
+  id: string;
+  course_id: string;
+  unit_id: string;
+  title: string;
+  description: string | null;
+  sort_order: number;
+};
+
+type LessonVideoRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  storage_path: string | null;
+  external_url: string | null;
+  thumbnail_path: string | null;
+  duration_seconds: number | null;
+  sort_order: number;
+};
+
+type LessonVocabularyRow = {
+  id: string;
+  word: string;
+  translation: string;
+  audio_url: string | null;
+  sort_order: number;
+};
+
+type LessonMultipleChoiceQuestionRow = {
+  id: string;
+  lesson_id?: string;
+  sentence: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: "A" | "B" | "C" | "D";
+  explanation: string | null;
+  sort_order: number;
+};
+
+type LessonListeningQuestionRow = {
+  id: string;
+  lesson_id?: string;
+  prompt: string | null;
+  audio_url: string | null;
+  spoken_text: string | null;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: "A" | "B" | "C" | "D";
+  explanation: string | null;
+  sort_order: number;
+};
+
+type LessonGapFillQuestionRow = {
+  id: string;
+  lesson_id?: string;
+  text_template: string;
+  answers: Record<string, string[]>;
+  hint: string | null;
+  explanation: string | null;
+  sort_order: number;
+};
+
+type ExerciseType = "listening" | "multiple_choice" | "gap_fill";
+
+type UserExerciseResultRow = {
+  lesson_id: string;
+  exercise_type: ExerciseType;
+  score_percent: number;
+  correct_count: number;
+  question_count: number;
+  passed: boolean;
+};
+
+type UserCourseProgressRow = {
+  course_id: string;
+  completed_lessons: number;
+  total_lessons: number;
+  progress_percent: number;
+  average_score: number | null;
 };
 
 const baseDashboardStats = [
@@ -400,6 +497,7 @@ export default function DashboardPage() {
   const [activeLanguage, setActiveLanguage] = useState(onlineLanguages[0]);
   const [profile, setProfile] = useState<Profile>({ full_name: "Μαθητή", email: "" });
   const [courses, setCourses] = useState<CourseAccessRow[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<CourseAccessRow | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const isDashboard = activeView === "dashboard";
@@ -419,6 +517,11 @@ export default function DashboardPage() {
     [courses.length],
   );
 
+  function openCourseLesson(course: CourseAccessRow) {
+    setSelectedCourse(course);
+    setActiveView("lesson");
+  }
+
   useEffect(() => {
     async function loadDashboard() {
       const { data: userData } = await supabase.auth.getUser();
@@ -436,8 +539,10 @@ export default function DashboardPage() {
           .select(
             `
             id,
+            course_id,
             expires_at,
             on_demand_courses (
+              id,
               language_code,
               language_name,
               level,
@@ -601,7 +706,7 @@ export default function DashboardPage() {
                   courses={courses}
                   error={error}
                   isLoading={isLoading}
-                  onContinue={() => setActiveView("lesson")}
+                  onContinue={openCourseLesson}
                 />
               </section>
 
@@ -633,13 +738,13 @@ export default function DashboardPage() {
               courses={courses}
               error={error}
               isLoading={isLoading}
-              onContinue={() => setActiveView("lesson")}
+              onContinue={openCourseLesson}
             />
           </section>
         ) : isLesson ? (
-          <LessonPlayer onBack={() => setActiveView("dashboard")} />
+          <LessonPlayer courseAccess={selectedCourse} onBack={() => setActiveView("dashboard")} />
         ) : isProgress ? (
-          <DashboardProgress />
+          <DashboardProgress courses={courses} />
         ) : (
           <section className={styles.dashboardPackageView}>
             <div className={styles.dashboardPanelHeader}>
@@ -669,7 +774,7 @@ function DashboardCourses({
   courses: CourseAccessRow[];
   error: string;
   isLoading: boolean;
-  onContinue: () => void;
+  onContinue: (course: CourseAccessRow) => void;
 }) {
   if (isLoading) {
     return <p className={styles.authMessage}>Φορτώνουμε τα μαθήματά σας...</p>;
@@ -712,7 +817,7 @@ function DashboardCourses({
               </div>
               <div className={styles.dashboardLessonRow}>
                 <span>{lesson}</span>
-                <button type="button" onClick={onContinue}>
+                <button type="button" onClick={() => onContinue(item)}>
                   Συνέχισε
                 </button>
               </div>
@@ -725,8 +830,86 @@ function DashboardCourses({
   );
 }
 
-function LessonPlayer({ onBack }: { onBack: () => void }) {
+function getOptionValue(
+  item: {
+    option_a: string;
+    option_b: string;
+    option_c: string;
+    option_d: string;
+  },
+  option: "A" | "B" | "C" | "D",
+) {
+  const optionMap = {
+    A: item.option_a,
+    B: item.option_b,
+    C: item.option_c,
+    D: item.option_d,
+  };
+
+  return optionMap[option];
+}
+
+function orderedAnswers(
+  item: {
+    option_a: string;
+    option_b: string;
+    option_c: string;
+    option_d: string;
+    correct_option: "A" | "B" | "C" | "D";
+  },
+) {
+  const correctAnswer = getOptionValue(item, item.correct_option);
+  return [
+    correctAnswer,
+    item.option_a,
+    item.option_b,
+    item.option_c,
+    item.option_d,
+  ].filter((answer, index, answers) => answers.indexOf(answer) === index);
+}
+
+function mapGapFillQuestion(item: LessonGapFillQuestionRow) {
+  const gapKeys = Object.keys(item.answers);
+  const choices = gapKeys
+    .flatMap((gapKey) => item.answers[gapKey])
+    .filter((answer, index, answers) => answers.indexOf(answer) === index);
+
+  return {
+    id: item.id,
+    textTemplate: item.text_template,
+    gapKeys,
+    hint: item.hint ?? "",
+    answers: item.answers,
+    choices,
+  };
+}
+
+function LessonPlayer({
+  courseAccess,
+  onBack,
+}: {
+  courseAccess: CourseAccessRow | null;
+  onBack: () => void;
+}) {
   const [openUnits, setOpenUnits] = useState([0]);
+  const [courseUnits, setCourseUnits] = useState<CourseUnitRow[]>([]);
+  const [courseLessons, setCourseLessons] = useState<CourseLessonRow[]>([]);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [lessonVideos, setLessonVideos] = useState<LessonVideoRow[]>([]);
+  const [lessonVocabulary, setLessonVocabulary] = useState<LessonVocabularyRow[]>([]);
+  const [lessonMultipleChoice, setLessonMultipleChoice] = useState<
+    LessonMultipleChoiceQuestionRow[]
+  >([]);
+  const [lessonListening, setLessonListening] = useState<LessonListeningQuestionRow[]>([]);
+  const [lessonGapFill, setLessonGapFill] = useState<LessonGapFillQuestionRow[]>([]);
+  const [courseMultipleChoice, setCourseMultipleChoice] = useState<LessonMultipleChoiceQuestionRow[]>(
+    [],
+  );
+  const [courseListening, setCourseListening] = useState<LessonListeningQuestionRow[]>([]);
+  const [courseGapFill, setCourseGapFill] = useState<LessonGapFillQuestionRow[]>([]);
+  const [exerciseResults, setExerciseResults] = useState<UserExerciseResultRow[]>([]);
+  const [lessonError, setLessonError] = useState("");
+  const [isLessonLoading, setIsLessonLoading] = useState(false);
   const [practiceOpen, setPracticeOpen] = useState(false);
   const [practiceIndex, setPracticeIndex] = useState(0);
   const [selectedPracticeAnswer, setSelectedPracticeAnswer] = useState<string | null>(null);
@@ -736,15 +919,83 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
   const [exerciseMode, setExerciseMode] = useState<ExerciseMode>("multipleChoice");
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [selectedExerciseAnswer, setSelectedExerciseAnswer] = useState<string | null>(null);
-  const [fillWordAnswer, setFillWordAnswer] = useState("");
+  const [fillWordAnswers, setFillWordAnswers] = useState<Record<string, string>>({});
   const [exerciseScore, setExerciseScore] = useState(0);
   const [exerciseFinished, setExerciseFinished] = useState(false);
   const [exerciseSubmitted, setExerciseSubmitted] = useState(false);
-  const currentPracticeItem = vocabularyItems[practiceIndex];
+  const selectedLesson =
+    courseLessons.find((lesson) => lesson.id === selectedLessonId) ?? courseLessons[0] ?? null;
+  const selectedVideo = lessonVideos[0];
+  const visibleLessonUnits =
+    courseUnits.length > 0
+      ? courseUnits.map((unit) => ({
+          id: unit.id,
+          title: unit.title,
+          progress: getUnitProgress(unit.id),
+          lessons: courseLessons
+            .filter((lesson) => lesson.unit_id === unit.id)
+            .map((lesson) => ({ id: lesson.id, title: lesson.title })),
+        }))
+      : courseAccess
+        ? []
+      : lessonUnits.map((unit) => ({
+          id: unit.title,
+          title: unit.title,
+          progress: unit.progress,
+          lessons: unit.lessons.map((lesson) => ({ id: lesson, title: lesson })),
+        }));
+  const visibleVocabularyItems =
+    lessonVocabulary.length > 0
+      ? lessonVocabulary.map((item) => ({ word: item.word, translation: item.translation }))
+      : courseAccess && !selectedLesson
+        ? []
+      : vocabularyItems;
+  const visibleQuizQuestions =
+    lessonMultipleChoice.length > 0
+      ? lessonMultipleChoice.map((item) => ({
+          id: item.id,
+          question: item.sentence,
+          answers: orderedAnswers(item),
+          correctAnswer: getOptionValue(item, item.correct_option),
+        }))
+      : courseAccess && !selectedLesson
+        ? []
+      : quizQuestions.map((item) => ({ id: null, correctAnswer: item.answers[0], ...item }));
+  const visibleFillWordQuestions =
+    lessonGapFill.length > 0
+      ? lessonGapFill.map(mapGapFillQuestion)
+      : courseAccess && !selectedLesson
+        ? []
+        : fillWordQuestions.map((item) => ({
+            id: null,
+            textTemplate: item.sentence.replace("_____", "{{gap1}}"),
+            gapKeys: ["gap1"],
+            hint: item.hint,
+            answers: { gap1: [item.answer] } as Record<string, string[]>,
+            choices: [item.answer],
+          }));
+  const visibleListeningQuestions =
+    lessonListening.length > 0
+      ? lessonListening.map((item) => ({
+          id: item.id,
+          prompt: item.prompt,
+          word: item.spoken_text ?? item.prompt ?? getOptionValue(item, item.correct_option),
+          answers: orderedAnswers(item),
+          correctAnswer: getOptionValue(item, item.correct_option),
+        }))
+      : courseAccess && !selectedLesson
+        ? []
+      : listeningQuestions.map((item) => ({
+          id: null,
+          prompt: null,
+          correctAnswer: item.answers[0],
+          ...item,
+        }));
+  const currentPracticeItem = visibleVocabularyItems[practiceIndex];
   const practiceOptions = currentPracticeItem
     ? [
         currentPracticeItem.translation,
-        ...vocabularyItems
+        ...visibleVocabularyItems
           .filter((item) => item.word !== currentPracticeItem.word)
           .map((item) => item.translation)
           .slice(0, 3),
@@ -752,15 +1003,399 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
     : [];
   const currentExerciseTotal =
     exerciseMode === "multipleChoice"
-      ? quizQuestions.length
+      ? visibleQuizQuestions.length
       : exerciseMode === "fillWord"
-        ? fillWordQuestions.length
-        : listeningQuestions.length;
-  const currentQuizQuestion = quizQuestions[exerciseIndex];
-  const currentFillQuestion = fillWordQuestions[exerciseIndex];
-  const currentListeningQuestion = listeningQuestions[exerciseIndex];
-  const practiceGrade = Math.round((practiceScore / vocabularyItems.length) * 100);
-  const exerciseGrade = Math.round((exerciseScore / currentExerciseTotal) * 100);
+        ? visibleFillWordQuestions.length
+        : visibleListeningQuestions.length;
+  const currentQuizQuestion = visibleQuizQuestions[exerciseIndex];
+  const currentFillQuestion = visibleFillWordQuestions[exerciseIndex];
+  const currentListeningQuestion = visibleListeningQuestions[exerciseIndex];
+  const practiceTotal = Math.max(visibleVocabularyItems.length, 1);
+  const exerciseTotal = Math.max(currentExerciseTotal, 1);
+  const practiceGrade = Math.round((practiceScore / practiceTotal) * 100);
+  const exerciseGrade = Math.round((exerciseScore / exerciseTotal) * 100);
+  const isFillWordComplete = currentFillQuestion
+    ? currentFillQuestion.gapKeys.every((gapKey) => Boolean(fillWordAnswers[gapKey]))
+    : false;
+  const isMultipleChoiceSolved = selectedLesson
+    ? isExerciseSolved(selectedLesson.id, "multiple_choice")
+    : false;
+  const isGapFillSolved = selectedLesson ? isExerciseSolved(selectedLesson.id, "gap_fill") : false;
+  const isListeningSolved = selectedLesson
+    ? isExerciseSolved(selectedLesson.id, "listening")
+    : false;
+
+  function getLessonQuestions(lessonId: string) {
+    return [
+      ...courseMultipleChoice
+        .filter((item) => item.lesson_id === lessonId)
+        .map((item) => ({ type: "multiple_choice" as ExerciseType, id: item.id })),
+      ...courseListening
+        .filter((item) => item.lesson_id === lessonId)
+        .map((item) => ({ type: "listening" as ExerciseType, id: item.id })),
+      ...courseGapFill
+        .filter((item) => item.lesson_id === lessonId)
+        .map((item) => ({ type: "gap_fill" as ExerciseType, id: item.id })),
+    ];
+  }
+
+  function isExerciseSolved(lessonId: string, exerciseType: ExerciseType) {
+    const questions = getLessonQuestions(lessonId).filter((item) => item.type === exerciseType);
+    const result = exerciseResults.find(
+      (item) => item.lesson_id === lessonId && item.exercise_type === exerciseType,
+    );
+
+    return questions.length > 0 && Boolean(result?.passed);
+  }
+
+  function isLessonSolved(lessonId: string) {
+    const questions = getLessonQuestions(lessonId);
+    const exerciseTypes = Array.from(new Set(questions.map((item) => item.type)));
+
+    return (
+      questions.length > 0 &&
+      exerciseTypes.every((exerciseType) => isExerciseSolved(lessonId, exerciseType))
+    );
+  }
+
+  function getUnitProgress(unitId: string) {
+    const lessons = courseLessons.filter((lesson) => lesson.unit_id === unitId);
+
+    if (lessons.length === 0) {
+      return 0;
+    }
+
+    const completedLessons = lessons.filter((lesson) => isLessonSolved(lesson.id)).length;
+    return Math.round((completedLessons / lessons.length) * 100);
+  }
+
+  async function recordExerciseAttempt(
+    exerciseType: ExerciseType,
+    questionId: string | null,
+    selectedAnswer: string,
+    isCorrect: boolean,
+  ) {
+    if (!questionId || !selectedLesson || !courseAccess) {
+      return;
+    }
+
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+
+    if (!user) {
+      return;
+    }
+
+    const nextAttempt = {
+      user_id: user.id,
+      lesson_id: selectedLesson.id,
+      exercise_type: exerciseType,
+      question_id: questionId,
+      selected_answer: selectedAnswer,
+      is_correct: isCorrect,
+    };
+
+    await supabase.from("user_exercise_attempts").insert(nextAttempt);
+
+  }
+
+  async function recordExerciseResult() {
+    if (!selectedLesson || !courseAccess || currentExerciseTotal === 0) {
+      return;
+    }
+
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+
+    if (!user) {
+      return;
+    }
+
+    const exerciseType: ExerciseType =
+      exerciseMode === "multipleChoice"
+        ? "multiple_choice"
+        : exerciseMode === "fillWord"
+          ? "gap_fill"
+          : "listening";
+    const scorePercent = Math.round((exerciseScore / currentExerciseTotal) * 100);
+    const resultRow = {
+      user_id: user.id,
+      lesson_id: selectedLesson.id,
+      exercise_type: exerciseType,
+      score_percent: scorePercent,
+      correct_count: exerciseScore,
+      question_count: currentExerciseTotal,
+      passed: scorePercent >= 70,
+    };
+
+    await supabase
+      .from("user_exercise_results")
+      .upsert(resultRow, { onConflict: "user_id,lesson_id,exercise_type" });
+
+    setExerciseResults((current) => {
+      const nextResult = {
+        lesson_id: selectedLesson.id,
+        exercise_type: exerciseType,
+        score_percent: scorePercent,
+        correct_count: exerciseScore,
+        question_count: currentExerciseTotal,
+        passed: scorePercent >= 70,
+      };
+
+      return [
+        ...current.filter(
+          (item) =>
+            !(item.lesson_id === selectedLesson.id && item.exercise_type === exerciseType),
+        ),
+        nextResult,
+      ];
+    });
+  }
+
+  useEffect(() => {
+    async function loadCourseStructure() {
+      if (!courseAccess) {
+        return;
+      }
+
+      setIsLessonLoading(true);
+      setLessonError("");
+
+      const [{ data: unitsData, error: unitsError }, { data: lessonsData, error: lessonsError }] =
+        await Promise.all([
+          supabase
+            .from("course_units")
+            .select("id, course_id, title, description, sort_order")
+            .eq("course_id", courseAccess.course_id)
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true }),
+          supabase
+            .from("course_lessons")
+            .select("id, course_id, unit_id, title, description, sort_order")
+            .eq("course_id", courseAccess.course_id)
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true }),
+        ]);
+
+      if (unitsError || lessonsError) {
+        setLessonError("Δεν μπορέσαμε να φορτώσουμε τα μαθήματα αυτού του course.");
+      }
+
+      const nextUnits = (unitsData ?? []) as CourseUnitRow[];
+      const nextLessons = (lessonsData ?? []) as CourseLessonRow[];
+
+      setCourseUnits(nextUnits);
+      setCourseLessons(nextLessons);
+      setSelectedLessonId(nextLessons[0]?.id ?? null);
+      setOpenUnits(nextUnits.length > 0 ? [0] : [0]);
+      setIsLessonLoading(false);
+    }
+
+    loadCourseStructure();
+  }, [courseAccess]);
+
+  useEffect(() => {
+    async function loadLessonContent() {
+      if (!selectedLessonId) {
+        setLessonVideos([]);
+        setLessonVocabulary([]);
+        setLessonMultipleChoice([]);
+        setLessonListening([]);
+        setLessonGapFill([]);
+        return;
+      }
+
+      setIsLessonLoading(true);
+      setLessonError("");
+
+      const [
+        { data: videosData, error: videosError },
+        { data: vocabularyData, error: vocabularyError },
+        { data: multipleChoiceData, error: multipleChoiceError },
+        { data: listeningData, error: listeningError },
+        { data: gapFillData, error: gapFillError },
+      ] = await Promise.all([
+        supabase
+          .from("lesson_videos")
+          .select(
+            "id, title, description, storage_path, external_url, thumbnail_path, duration_seconds, sort_order",
+          )
+          .eq("lesson_id", selectedLessonId)
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("lesson_vocabulary")
+          .select("id, word, translation, audio_url, sort_order")
+          .eq("lesson_id", selectedLessonId)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("lesson_multiple_choice_questions")
+          .select(
+            "id, sentence, option_a, option_b, option_c, option_d, correct_option, explanation, sort_order",
+          )
+          .eq("lesson_id", selectedLessonId)
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("lesson_listening_questions")
+          .select(
+            "id, prompt, audio_url, spoken_text, option_a, option_b, option_c, option_d, correct_option, explanation, sort_order",
+          )
+          .eq("lesson_id", selectedLessonId)
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("lesson_gap_fill_questions")
+          .select("id, text_template, answers, hint, explanation, sort_order")
+          .eq("lesson_id", selectedLessonId)
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true }),
+      ]);
+
+      if (
+        videosError ||
+        vocabularyError ||
+        multipleChoiceError ||
+        listeningError ||
+        gapFillError
+      ) {
+        setLessonError("Δεν μπορέσαμε να φορτώσουμε όλο το περιεχόμενο του lesson.");
+      }
+
+      setLessonVideos((videosData ?? []) as LessonVideoRow[]);
+      setLessonVocabulary((vocabularyData ?? []) as LessonVocabularyRow[]);
+      setLessonMultipleChoice((multipleChoiceData ?? []) as LessonMultipleChoiceQuestionRow[]);
+      setLessonListening((listeningData ?? []) as LessonListeningQuestionRow[]);
+      setLessonGapFill((gapFillData ?? []) as LessonGapFillQuestionRow[]);
+      setPracticeIndex(0);
+      setExerciseIndex(0);
+      setSelectedPracticeAnswer(null);
+      setSelectedExerciseAnswer(null);
+      setFillWordAnswers({});
+      setIsLessonLoading(false);
+    }
+
+    loadLessonContent();
+  }, [selectedLessonId]);
+
+  useEffect(() => {
+    async function loadCourseProgressData() {
+      const lessonIds = courseLessons.map((lesson) => lesson.id);
+
+      if (!courseAccess || lessonIds.length === 0) {
+        setCourseMultipleChoice([]);
+        setCourseListening([]);
+        setCourseGapFill([]);
+        return;
+      }
+
+      const [
+        { data: multipleChoiceData },
+        { data: listeningData },
+        { data: gapFillData },
+        { data: resultsData },
+      ] = await Promise.all([
+        supabase
+          .from("lesson_multiple_choice_questions")
+          .select(
+            "id, lesson_id, sentence, option_a, option_b, option_c, option_d, correct_option, explanation, sort_order",
+          )
+          .in("lesson_id", lessonIds)
+          .eq("is_active", true),
+        supabase
+          .from("lesson_listening_questions")
+          .select(
+            "id, lesson_id, prompt, audio_url, spoken_text, option_a, option_b, option_c, option_d, correct_option, explanation, sort_order",
+          )
+          .in("lesson_id", lessonIds)
+          .eq("is_active", true),
+        supabase
+          .from("lesson_gap_fill_questions")
+          .select("id, lesson_id, text_template, answers, hint, explanation, sort_order")
+          .in("lesson_id", lessonIds)
+          .eq("is_active", true),
+        supabase
+          .from("user_exercise_results")
+          .select("lesson_id, exercise_type, score_percent, correct_count, question_count, passed")
+          .in("lesson_id", lessonIds),
+      ]);
+
+      setCourseMultipleChoice((multipleChoiceData ?? []) as LessonMultipleChoiceQuestionRow[]);
+      setCourseListening((listeningData ?? []) as LessonListeningQuestionRow[]);
+      setCourseGapFill((gapFillData ?? []) as LessonGapFillQuestionRow[]);
+      setExerciseResults((resultsData ?? []) as UserExerciseResultRow[]);
+    }
+
+    loadCourseProgressData();
+  }, [courseAccess, courseLessons]);
+
+  useEffect(() => {
+    async function syncProgressSummaries() {
+      if (!courseAccess || courseLessons.length === 0) {
+        return;
+      }
+
+      const totalQuestions =
+        courseMultipleChoice.length + courseListening.length + courseGapFill.length;
+
+      if (totalQuestions === 0) {
+        return;
+      }
+
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+
+      if (!user) {
+        return;
+      }
+
+      const completedLessons = courseLessons.filter((lesson) => isLessonSolved(lesson.id));
+      const averageScore =
+        exerciseResults.length > 0
+          ? Math.round(
+              exerciseResults.reduce((total, item) => total + item.score_percent, 0) /
+                exerciseResults.length,
+            )
+          : null;
+      const completedLessonRows = completedLessons.map((lesson) => ({
+        user_id: user.id,
+        course_id: courseAccess.course_id,
+        lesson_id: lesson.id,
+        completed_at: new Date().toISOString(),
+        score: 100,
+      }));
+      const progressPercent = Math.round((completedLessons.length / courseLessons.length) * 100);
+
+      if (completedLessonRows.length > 0) {
+        await supabase
+          .from("user_lesson_progress")
+          .upsert(completedLessonRows, { onConflict: "user_id,lesson_id" });
+      }
+
+      await supabase.from("user_course_progress").upsert(
+        {
+          user_id: user.id,
+          course_id: courseAccess.course_id,
+          completed_lessons: completedLessons.length,
+          total_lessons: courseLessons.length,
+          progress_percent: progressPercent,
+          average_score: averageScore,
+        },
+        { onConflict: "user_id,course_id" },
+      );
+    }
+
+    syncProgressSummaries();
+    // isLessonSolved is a render-local derived helper; the listed state inputs are the intended triggers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    courseAccess,
+    courseLessons,
+    courseMultipleChoice,
+    courseListening,
+    courseGapFill,
+    exerciseResults,
+  ]);
 
   function toggleUnit(index: number) {
     setOpenUnits((current) =>
@@ -806,7 +1441,7 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
   }
 
   function goToNextPracticeWord() {
-    if (practiceIndex === vocabularyItems.length - 1) {
+    if (practiceIndex === visibleVocabularyItems.length - 1) {
       setPracticeFinished(true);
       return;
     }
@@ -815,11 +1450,71 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
     setSelectedPracticeAnswer(null);
   }
 
+  function chooseGapAnswer(gapKey: string, answer: string) {
+    if (exerciseSubmitted) {
+      return;
+    }
+
+    setFillWordAnswers((current) => ({ ...current, [gapKey]: answer }));
+  }
+
+  function clearGapAnswer(gapKey: string) {
+    if (exerciseSubmitted) {
+      return;
+    }
+
+    setFillWordAnswers((current) => {
+      const nextAnswers = { ...current };
+      delete nextAnswers[gapKey];
+      return nextAnswers;
+    });
+  }
+
+  function renderGapFillTemplate(question: NonNullable<typeof currentFillQuestion>) {
+    const parts = question.textTemplate.split(/(\{\{[^}]+\}\})/g);
+
+    return parts.map((part, index) => {
+      const match = part.match(/^\{\{([^}]+)\}\}$/);
+
+      if (!match) {
+        return <span key={`${part}-${index}`}>{part}</span>;
+      }
+
+      const gapKey = match[1];
+      const answer = fillWordAnswers[gapKey];
+      const acceptedAnswers = currentFillQuestion?.answers[gapKey] ?? [];
+      const isCheckedCorrect =
+        exerciseSubmitted &&
+        acceptedAnswers.some(
+          (acceptedAnswer) => acceptedAnswer.trim().toLowerCase() === answer?.trim().toLowerCase(),
+        );
+      const isCheckedWrong = exerciseSubmitted && answer && !isCheckedCorrect;
+
+      return (
+        <button
+          className={`${styles.gapDropZone} ${isCheckedCorrect ? styles.gapDropZoneCorrect : ""} ${
+            isCheckedWrong ? styles.gapDropZoneWrong : ""
+          }`}
+          key={gapKey}
+          onClick={() => clearGapAnswer(gapKey)}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            chooseGapAnswer(gapKey, event.dataTransfer.getData("text/plain"));
+          }}
+          type="button"
+        >
+          {answer || "_____"}
+        </button>
+      );
+    });
+  }
+
   function startExercise(mode: ExerciseMode) {
     setExerciseMode(mode);
     setExerciseIndex(0);
     setSelectedExerciseAnswer(null);
-    setFillWordAnswer("");
+    setFillWordAnswers({});
     setExerciseScore(0);
     setExerciseFinished(false);
     setExerciseSubmitted(false);
@@ -837,8 +1532,8 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
 
     const correctAnswer =
       exerciseMode === "multipleChoice"
-        ? currentQuizQuestion?.answers[0]
-        : currentListeningQuestion?.answers[0];
+        ? currentQuizQuestion?.correctAnswer
+        : currentListeningQuestion?.correctAnswer;
 
     if (!correctAnswer) {
       return;
@@ -846,6 +1541,13 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
 
     setSelectedExerciseAnswer(answer);
     setExerciseSubmitted(true);
+
+    void recordExerciseAttempt(
+      exerciseMode === "multipleChoice" ? "multiple_choice" : "listening",
+      exerciseMode === "multipleChoice" ? currentQuizQuestion?.id : currentListeningQuestion?.id,
+      answer,
+      answer === correctAnswer,
+    );
 
     if (answer === correctAnswer) {
       setExerciseScore((score) => score + 1);
@@ -857,23 +1559,34 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
       return;
     }
 
-    const normalizedAnswer = fillWordAnswer.trim().toLowerCase();
+    const isCorrect = currentFillQuestion.gapKeys.every((gapKey) => {
+      const selectedAnswer = fillWordAnswers[gapKey]?.trim().toLowerCase();
+      const acceptedAnswers = currentFillQuestion.answers[gapKey] ?? [];
+
+      return acceptedAnswers.some((answer) => answer.trim().toLowerCase() === selectedAnswer);
+    });
+    const selectedAnswer = currentFillQuestion.gapKeys
+      .map((gapKey) => `${gapKey}:${fillWordAnswers[gapKey] ?? ""}`)
+      .join("|");
     setExerciseSubmitted(true);
 
-    if (normalizedAnswer === currentFillQuestion.answer.toLowerCase()) {
+    void recordExerciseAttempt("gap_fill", currentFillQuestion.id, selectedAnswer, isCorrect);
+
+    if (isCorrect) {
       setExerciseScore((score) => score + 1);
     }
   }
 
   function goToNextExerciseQuestion() {
     if (exerciseIndex === currentExerciseTotal - 1) {
+      void recordExerciseResult();
       setExerciseFinished(true);
       return;
     }
 
     setExerciseIndex((index) => index + 1);
     setSelectedExerciseAnswer(null);
-    setFillWordAnswer("");
+    setFillWordAnswers({});
     setExerciseSubmitted(false);
   }
 
@@ -887,7 +1600,12 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
           </button>
         </div>
         <div className={styles.lessonUnitList}>
-          {lessonUnits.map((unit, unitIndex) => {
+          {courseAccess && !isLessonLoading && visibleLessonUnits.length === 0 ? (
+            <p className={styles.authMessage}>
+              Δεν έχουν προστεθεί ακόμα ενότητες για αυτό το course.
+            </p>
+          ) : null}
+          {visibleLessonUnits.map((unit, unitIndex) => {
             const isOpen = openUnits.includes(unitIndex);
 
             return (
@@ -909,16 +1627,27 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
                 {isOpen ? (
                   <div className={styles.lessonList}>
                     {unit.lessons.map((item, lessonIndex) => {
-                      const isActive = unitIndex === 0 && lessonIndex === 3;
+                      const isActive =
+                        courseLessons.length > 0
+                          ? selectedLessonId === item.id
+                          : unitIndex === 0 && lessonIndex === 3;
 
                       return (
                         <button
                           className={isActive ? styles.lessonListActive : ""}
-                          key={item}
+                          key={item.id}
+                          onClick={() => {
+                            if (courseLessons.length > 0) {
+                              setSelectedLessonId(item.id);
+                            }
+                          }}
                           type="button"
                         >
                           <span>{lessonIndex + 1}</span>
-                          {item}
+                          <strong>{item.title}</strong>
+                          {courseLessons.length > 0 && isLessonSolved(item.id) ? (
+                            <em className={styles.lessonSolvedTick}>✓</em>
+                          ) : null}
                         </button>
                       );
                     })}
@@ -931,18 +1660,33 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
       </aside>
 
       <article className={styles.lessonContent}>
+        {isLessonLoading ? <p className={styles.authMessage}>Loading lesson...</p> : null}
+        {lessonError ? <p className={styles.authError}>{lessonError}</p> : null}
+        {courseAccess && !isLessonLoading && !selectedLesson ? (
+          <div className={styles.myCoursesEmpty}>
+            <p>Δεν έχει προστεθεί ακόμα lesson content για αυτό το course.</p>
+          </div>
+        ) : null}
+        {!courseAccess || selectedLesson ? (
+          <>
         <div className={styles.lessonHero}>
           <p className={styles.eyebrow}>Αγγλικά A1</p>
-          <h2>This is my family</h2>
+          <h2>{selectedLesson?.title ?? "This is my family"}</h2>
+          {selectedLesson?.description ? <p>{selectedLesson.description}</p> : null}
+          {!courseAccess ? (
           <p>
             Σε αυτό το μάθημα μαθαίνουμε βασικές λέξεις για την οικογένεια και
             πώς να παρουσιάζουμε απλά τα μέλη της.
           </p>
+          ) : null}
         </div>
 
         <section className={styles.lessonBlock}>
           <video className={styles.lessonVideo} controls preload="metadata">
-            <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4" type="video/mp4" />
+            <source
+              src={selectedVideo?.external_url ?? "https://samplelib.com/lib/preview/mp4/sample-5s.mp4"}
+              type="video/mp4"
+            />
           </video>
         </section>
 
@@ -954,7 +1698,7 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
             </button>
           </div>
           <div className={styles.vocabularyGrid}>
-            {vocabularyItems.map((item) => (
+            {visibleVocabularyItems.map((item) => (
               <div className={styles.vocabularyCard} key={item.word}>
                 <div className={styles.vocabularyWordRow}>
                   <strong>{item.word}</strong>
@@ -1013,7 +1757,7 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
                   <span>
                     {practiceFinished
                       ? "Ολοκληρώθηκε"
-                      : `${practiceIndex + 1}/${vocabularyItems.length}`}
+                      : `${practiceIndex + 1}/${visibleVocabularyItems.length}`}
                   </span>
                   <h3 id="vocabulary-practice-title">Εξάσκηση λεξιλογίου</h3>
                 </div>
@@ -1112,14 +1856,14 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
 
                   <div className={styles.practiceFooter}>
                     <span>
-                      Score: {practiceScore}/{vocabularyItems.length}
+                      Score: {practiceScore}/{visibleVocabularyItems.length}
                     </span>
                     <button
                       disabled={!selectedPracticeAnswer}
                       onClick={goToNextPracticeWord}
                       type="button"
                     >
-                      {practiceIndex === vocabularyItems.length - 1 ? "Τέλος" : "Επόμενο"}
+                      {practiceIndex === visibleVocabularyItems.length - 1 ? "Τέλος" : "Επόμενο"}
                     </button>
                   </div>
                 </>
@@ -1136,6 +1880,7 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
                 <strong>Πολλαπλής επιλογής</strong>
                 <span>Διάλεξε τη σωστή απάντηση.</span>
               </div>
+              {isMultipleChoiceSolved ? <span className={styles.exerciseSolvedTick}>✓</span> : null}
               <button type="button" onClick={() => startExercise("multipleChoice")}>
                 Έναρξη
               </button>
@@ -1143,9 +1888,10 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
 
             <article className={styles.exerciseCard}>
               <div>
-                <strong>Συμπλήρωσε τη λέξη</strong>
-                <span>Γράψε τη λέξη που λείπει.</span>
+                <strong>Σύρε τις λέξεις</strong>
+                <span>Βάλε κάθε επιλογή στο σωστό κενό.</span>
               </div>
+              {isGapFillSolved ? <span className={styles.exerciseSolvedTick}>✓</span> : null}
               <button type="button" onClick={() => startExercise("fillWord")}>
                 Έναρξη
               </button>
@@ -1156,6 +1902,7 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
                 <strong>Άκου και διάλεξε</strong>
                 <span>Άκου τη λέξη και βρες τη σωστή.</span>
               </div>
+              {isListeningSolved ? <span className={styles.exerciseSolvedTick}>✓</span> : null}
               <button type="button" onClick={() => startExercise("listening")}>
                 Έναρξη
               </button>
@@ -1180,7 +1927,7 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
                     {exerciseMode === "multipleChoice"
                       ? "Πολλαπλής επιλογής"
                       : exerciseMode === "fillWord"
-                        ? "Συμπλήρωσε τη λέξη"
+                        ? "Σύρε τις λέξεις στα κενά"
                         : "Άκου και διάλεξε"}
                   </h3>
                 </div>
@@ -1212,7 +1959,7 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
                   <div className={styles.practiceOptions}>
                     {currentQuizQuestion.answers.map((answer) => {
                       const isSelected = selectedExerciseAnswer === answer;
-                      const isCorrect = answer === currentQuizQuestion.answers[0];
+                      const isCorrect = answer === currentQuizQuestion.correctAnswer;
                       const showCorrect = exerciseSubmitted && isCorrect;
                       const showWrong = isSelected && !isCorrect;
 
@@ -1234,9 +1981,9 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
 
                   {exerciseSubmitted ? (
                     <div className={styles.practiceFeedback}>
-                      {selectedExerciseAnswer === currentQuizQuestion.answers[0]
+                      {selectedExerciseAnswer === currentQuizQuestion.correctAnswer
                         ? "Σωστά"
-                        : `Λάθος. Σωστή απάντηση: ${currentQuizQuestion.answers[0]}`}
+                        : `Λάθος. Σωστή απάντηση: ${currentQuizQuestion.correctAnswer}`}
                     </div>
                   ) : null}
 
@@ -1256,25 +2003,37 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
               ) : exerciseMode === "fillWord" && currentFillQuestion ? (
                 <>
                   <div className={styles.practicePrompt}>
-                    <span>Συμπλήρωσε τη λέξη για: {currentFillQuestion.hint}</span>
-                    <strong>{currentFillQuestion.sentence}</strong>
+                    <strong className={styles.gapFillSentence}>
+                      {renderGapFillTemplate(currentFillQuestion)}
+                    </strong>
                   </div>
 
                   <div className={styles.fillWordForm}>
-                    <input
-                      disabled={exerciseSubmitted}
-                      onChange={(event) => setFillWordAnswer(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          submitFillWordAnswer();
-                        }
-                      }}
-                      placeholder="Γράψε εδώ"
-                      type="text"
-                      value={fillWordAnswer}
-                    />
+                    <div className={styles.gapChoiceBank}>
+                      {currentFillQuestion.choices.map((choice) => (
+                        <button
+                          draggable={!exerciseSubmitted}
+                          key={choice}
+                          onClick={() => {
+                            const firstEmptyGap = currentFillQuestion.gapKeys.find(
+                              (gapKey) => !fillWordAnswers[gapKey],
+                            );
+
+                            if (firstEmptyGap) {
+                              chooseGapAnswer(firstEmptyGap, choice);
+                            }
+                          }}
+                          onDragStart={(event) => {
+                            event.dataTransfer.setData("text/plain", choice);
+                          }}
+                          type="button"
+                        >
+                          {choice}
+                        </button>
+                      ))}
+                    </div>
                     <button
-                      disabled={exerciseSubmitted || !fillWordAnswer.trim()}
+                      disabled={exerciseSubmitted || !isFillWordComplete}
                       onClick={submitFillWordAnswer}
                       type="button"
                     >
@@ -1284,9 +2043,19 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
 
                   {exerciseSubmitted ? (
                     <div className={styles.practiceFeedback}>
-                      {fillWordAnswer.trim().toLowerCase() === currentFillQuestion.answer.toLowerCase()
+                      {currentFillQuestion.gapKeys.every((gapKey) => {
+                        const selectedAnswer = fillWordAnswers[gapKey]?.trim().toLowerCase();
+                        const acceptedAnswers = currentFillQuestion.answers[gapKey] ?? [];
+
+                        return acceptedAnswers.some(
+                          (answer) => answer.trim().toLowerCase() === selectedAnswer,
+                        );
+                      })
                         ? "Σωστά"
-                        : `Λάθος. Σωστή απάντηση: ${currentFillQuestion.answer}`}
+                        : `Λάθος. Σωστή απάντηση: ${currentFillQuestion.gapKeys
+                            .map((gapKey) => currentFillQuestion.answers[gapKey]?.[0])
+                            .filter(Boolean)
+                            .join(", ")}`}
                     </div>
                   ) : null}
 
@@ -1306,7 +2075,7 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
               ) : exerciseMode === "listening" && currentListeningQuestion ? (
                 <>
                   <div className={styles.practicePrompt}>
-                    <span>Πάτησε το ηχείο και διάλεξε τη λέξη που άκουσες</span>
+                    <span>{currentListeningQuestion.prompt ?? "Press the audio button and choose the word you hear"}</span>
                     <button
                       aria-label="Άκου τη λέξη"
                       className={styles.listeningButton}
@@ -1346,7 +2115,7 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
                   <div className={styles.practiceOptions}>
                     {currentListeningQuestion.answers.map((answer) => {
                       const isSelected = selectedExerciseAnswer === answer;
-                      const isCorrect = answer === currentListeningQuestion.answers[0];
+                      const isCorrect = answer === currentListeningQuestion.correctAnswer;
                       const showCorrect = exerciseSubmitted && isCorrect;
                       const showWrong = isSelected && !isCorrect;
 
@@ -1368,9 +2137,9 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
 
                   {exerciseSubmitted ? (
                     <div className={styles.practiceFeedback}>
-                      {selectedExerciseAnswer === currentListeningQuestion.answers[0]
+                      {selectedExerciseAnswer === currentListeningQuestion.correctAnswer
                         ? "Σωστά"
-                        : `Λάθος. Σωστή απάντηση: ${currentListeningQuestion.answers[0]}`}
+                        : `Λάθος. Σωστή απάντηση: ${currentListeningQuestion.correctAnswer}`}
                     </div>
                   ) : null}
 
@@ -1396,6 +2165,8 @@ function LessonPlayer({ onBack }: { onBack: () => void }) {
           <button type="button">Ολοκλήρωση μαθήματος</button>
           <button type="button">Επόμενο μάθημα</button>
         </div>
+          </>
+        ) : null}
       </article>
     </section>
   );
@@ -1497,10 +2268,54 @@ function DashboardPackages({
   );
 }
 
-function DashboardProgress() {
+function DashboardProgress({ courses }: { courses: CourseAccessRow[] }) {
+  const [courseProgressRows, setCourseProgressRows] = useState<UserCourseProgressRow[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState(progressPrograms[0].id);
+  const dynamicPrograms = courses.map((courseAccess) => {
+    const course = courseAccess.on_demand_courses;
+    const progressRow = courseProgressRows.find((item) => item.course_id === courseAccess.course_id);
+
+    return {
+      id: courseAccess.course_id,
+      title: course?.title ?? "Online μάθημα",
+      progress: progressRow?.progress_percent ?? 0,
+      completedLessons: progressRow?.completed_lessons ?? 0,
+      totalLessons: progressRow?.total_lessons ?? 0,
+      averageGrade: progressRow?.average_score ?? 0,
+      vocabulary: 0,
+      streak: 0,
+      studyTime: "-",
+      nextGoal: "Επόμενο lesson",
+      nextStep: "Συνέχισε από το επόμενο διαθέσιμο lesson.",
+      recentGrades: [],
+      weakSpots: [],
+    };
+  });
+  const progressOptions = dynamicPrograms.length > 0 ? dynamicPrograms : progressPrograms;
   const selectedProgram =
-    progressPrograms.find((program) => program.id === selectedProgramId) ?? progressPrograms[0];
+    progressOptions.find((program) => program.id === selectedProgramId) ?? progressOptions[0];
+
+  useEffect(() => {
+    async function loadCourseProgress() {
+      if (courses.length === 0) {
+        setCourseProgressRows([]);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("user_course_progress")
+        .select("course_id, completed_lessons, total_lessons, progress_percent, average_score")
+        .in(
+          "course_id",
+          courses.map((course) => course.course_id),
+        );
+
+      setCourseProgressRows((data ?? []) as UserCourseProgressRow[]);
+    }
+
+    loadCourseProgress();
+  }, [courses]);
+
   const progressStats = [
     {
       icon: "progress",
@@ -1549,7 +2364,7 @@ function DashboardProgress() {
   return (
     <section className={styles.progressView} id="progress">
       <div className={styles.progressProgramTabs} role="tablist" aria-label="Προγράμματα">
-        {progressPrograms.map((program) => {
+        {progressOptions.map((program) => {
           const isActive = program.id === selectedProgram.id;
 
           return (

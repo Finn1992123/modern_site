@@ -3,6 +3,8 @@ import Link from "next/link";
 import ReviewsCarousel from "./ReviewsCarousel";
 import styles from "./page.module.css";
 
+const isOnlineEnabled = process.env.NEXT_PUBLIC_ENABLE_ONLINE === "true";
+
 const offers = [
   "Δωρεάν test αξιολόγησης επιπέδου",
   "Δωρεάν Pre-Junior",
@@ -139,11 +141,13 @@ export default function Home() {
           <a className={styles.activeTab} href="#top">
             Δια ζώσης
           </a>
-          <Link href="/online">Online Ξένες Γλώσσες</Link>
+          {isOnlineEnabled ? <Link href="/online">Online Ξένες Γλώσσες</Link> : null}
         </nav>
-        <Link className={styles.headerLogin} href="/online/login">
-          Σύνδεση
-        </Link>
+        {isOnlineEnabled ? (
+          <Link className={styles.headerLogin} href="/online/login">
+            Σύνδεση
+          </Link>
+        ) : null}
       </header>
 
       <section id="top" className={styles.hero}>

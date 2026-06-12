@@ -1,0 +1,174 @@
+[browser] Image with src "http://127.0.0.1:3000/assets/logoTransp.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Image with src "http://127.0.0.1:3000/assets/logoTransp.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+⨯ ./src/app/online/dashboard/page.tsx:1753:9
+Expected '</', got 'ident'
+  [90m1751 |[0m           <button [36mtype[0m=[32m"button"[0m>Επόμενο μάθημα</button>
+  [90m1752 |[0m         </div>
+[31m[1m>[0m [90m1753 |[0m       </article>
+  [90m     |[0m         [31m[1m^^^^^^^[0m
+  [90m1754 |[0m     </section>
+  [90m1755 |[0m   );
+  [90m1756 |[0m }
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/online/dashboard/page.tsx [Client Component Browser]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/online/dashboard/page.tsx [Client Component SSR]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+
+⨯ ./src/app/online/dashboard/page.tsx:1753:9
+Expected '</', got 'ident'
+  [90m1751 |[0m           <button [36mtype[0m=[32m"button"[0m>Επόμενο μάθημα</button>
+  [90m1752 |[0m         </div>
+[31m[1m>[0m [90m1753 |[0m       </article>
+  [90m     |[0m         [31m[1m^^^^^^^[0m
+  [90m1754 |[0m     </section>
+  [90m1755 |[0m   );
+  [90m1756 |[0m }
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/online/dashboard/page.tsx [Client Component Browser]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/online/dashboard/page.tsx [Client Component SSR]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+
+⨯ ./src/app/online/dashboard/page.tsx:1753:9
+Expected '</', got 'ident'
+  [90m1751 |[0m           <button [36mtype[0m=[32m"button"[0m>Επόμενο μάθημα</button>
+  [90m1752 |[0m         </div>
+[31m[1m>[0m [90m1753 |[0m       </article>
+  [90m     |[0m         [31m[1m^^^^^^^[0m
+  [90m1754 |[0m     </section>
+  [90m1755 |[0m   );
+  [90m1756 |[0m }
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/online/dashboard/page.tsx [Client Component Browser]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/online/dashboard/page.tsx [Client Component SSR]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+
+⨯ ./src/app/online/dashboard/page.tsx:1753:9
+Expected '</', got 'ident'
+  [90m1751 |[0m           <button [36mtype[0m=[32m"button"[0m>Επόμενο μάθημα</button>
+  [90m1752 |[0m         </div>
+[31m[1m>[0m [90m1753 |[0m       </article>
+  [90m     |[0m         [31m[1m^^^^^^^[0m
+  [90m1754 |[0m     </section>
+  [90m1755 |[0m   );
+  [90m1756 |[0m }
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/online/dashboard/page.tsx [Client Component Browser]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/online/dashboard/page.tsx [Client Component SSR]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+
+[browser] Uncaught Error: ./src/app/online/dashboard/page.tsx:1753:9
+Expected '</', got 'ident'
+  1751 |           <button type="button">Επόμενο μάθημα</button>
+  1752 |         </div>
+> 1753 |       </article>
+       |         ^^^^^^^
+  1754 |     </section>
+  1755 |   );
+  1756 | }
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/online/dashboard/page.tsx [Client Component Browser]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/online/dashboard/page.tsx [Client Component SSR]
+    ./src/app/online/dashboard/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/online/dashboard/page.tsx:1753:9)
+    at <unknown> (Error: (./src/app/online/dashboard/page.tsx:1753:9)
+[browser] Image with src "http://127.0.0.1:3000/assets/logoTransp.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Image with src "http://127.0.0.1:3000/assets/logoTransp.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Image with src "http://127.0.0.1:3000/assets/logoTransp.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[browser] Image with src "http://127.0.0.1:3000/assets/logoTransp.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] The final argument passed to useEffect changed size between renders. The order and size of this array must remain constant.
+
+Previous: [[object Object], [object Object], [object Object],[object Object], [object Object],[object Object], [object Object], ]
+Incoming: [[object Object], [object Object], [object Object],[object Object], [object Object],[object Object], [object Object], , ] 
+    at LessonPlayer (src/app/online/dashboard/page.tsx:1338:89)
+    at Set.forEach (<anonymous>)
+  1336 |       }
+  1337 |
+> 1338 |       const completedLessons = courseLessons.filter((lesson) => isLessonSolved(lesson.id));
+       |                                                                                         ^
+  1339 |       const averageScore =
+  1340 |         exerciseResults.length > 0
+  1341 |           ? Math.round( (src/app/online/dashboard/page.tsx:1338:89)
+[browser] The final argument passed to useEffect changed size between renders. The order and size of this array must remain constant.
+
+Previous: [[object Object], [object Object], [object Object],[object Object], [object Object],[object Object], [object Object], , ]
+Incoming: [[object Object], [object Object], [object Object],[object Object], [object Object],[object Object], [object Object], ] 
+    at LessonPlayer (src/app/online/dashboard/page.tsx:1338:52)
+    at Set.forEach (<anonymous>)
+  1336 |       }
+  1337 |
+> 1338 |       const completedLessons = courseLessons.filter((lesson) => isLessonSolved(lesson.id));
+       |                                                    ^
+  1339 |       const averageScore =
+  1340 |         exerciseResults.length > 0
+  1341 |           ? Math.round( (src/app/online/dashboard/page.tsx:1338:52)
+[browser] ⨯ unhandledRejection: ReferenceError: setExerciseAttempts is not defined
+    at loadCourseProgressData (src/app/online/dashboard/page.tsx:1312:7)
+    at LessonPlayer.useEffect (src/app/online/dashboard/page.tsx:1327:33)
+  1310 |       setCourseListening((listeningData ?? []) as LessonListeningQuestionRow[]);
+  1311 |       setCourseGapFill((gapFillData ?? []) as LessonGapFillQuestionRow[]);
+> 1312 |       setExerciseResults((resultsData ?? []) as UserExerciseResultRow[]);
+       |       ^
+  1313 |     }
+  1314 |
+  1315 |     loadCourseProgressData();
+[browser] ⨯ unhandledRejection: ReferenceError: setExerciseAttempts is not defined
+    at loadCourseProgressData (src/app/online/dashboard/page.tsx:1322:7)
+  1320 |       if (!courseAccess || courseLessons.length === 0) {
+  1321 |         return;
+> 1322 |       }
+       |       ^
+  1323 |
+  1324 |       const totalQuestions =
+  1325 |         courseMultipleChoice.length + courseListening.length + courseGapFill.length;
+[browser] Image with src "http://127.0.0.1:3000/assets/logoTransp.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] ⨯ unhandledRejection: ReferenceError: setFillWordAnswer is not defined
+    at loadLessonContent (src/app/online/dashboard/page.tsx:1273:7)
+  1271 |       setExerciseIndex(0);
+  1272 |       setSelectedPracticeAnswer(null);
+> 1273 |       setSelectedExerciseAnswer(null);
+       |       ^
+  1274 |       setFillWordAnswers({});
+  1275 |       setIsLessonLoading(false);
+  1276 |     }

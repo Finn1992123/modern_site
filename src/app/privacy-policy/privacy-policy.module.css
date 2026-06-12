@@ -1,0 +1,189 @@
+.page {
+  --blue: #173a8a;
+  --royal: #2e42c8;
+  --ink: #102035;
+  --muted: #5f6e82;
+  --line: rgba(23, 58, 138, 0.16);
+  min-height: 100vh;
+  padding-bottom: 80px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(231, 249, 255, 0.94) 54%, rgba(207, 239, 249, 0.9) 100%);
+  color: var(--ink);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: min(980px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 30px 0 16px;
+}
+
+.brand,
+.homeLink {
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.brand {
+  font-size: 22px;
+}
+
+.homeLink {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 14px 34px rgba(23, 58, 138, 0.08);
+}
+
+.homeLink:hover {
+  background: white;
+  border-color: rgba(23, 58, 138, 0.28);
+}
+
+.hero {
+  display: grid;
+  gap: 14px;
+  width: min(980px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 66px 0 34px;
+}
+
+.eyebrow {
+  color: var(--royal);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  color: var(--blue);
+  font-size: clamp(42px, 6vw, 76px);
+  line-height: 1;
+}
+
+.hero p:not(.eyebrow) {
+  max-width: 680px;
+  color: var(--muted);
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.55;
+}
+
+.policyShell {
+  display: grid;
+  gap: 24px;
+  width: min(980px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.tabList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 42px rgba(23, 58, 138, 0.1);
+}
+
+.tabList button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--blue);
+  cursor: pointer;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.tabList button:hover {
+  background: rgba(137, 172, 255, 0.18);
+}
+
+.tabList .activeTab {
+  background: var(--blue);
+  color: white;
+  box-shadow: 0 12px 28px rgba(23, 58, 138, 0.18);
+}
+
+.policyArticle {
+  display: grid;
+  gap: 24px;
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 20px 60px rgba(23, 58, 138, 0.12);
+}
+
+.policyArticle h2 {
+  color: var(--blue);
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.08;
+}
+
+.policySection {
+  display: grid;
+  gap: 10px;
+}
+
+.policySection h3 {
+  color: var(--blue);
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.12;
+}
+
+.policySection p,
+.policySection li {
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.62;
+}
+
+.policySection p:first-child {
+  color: var(--muted);
+}
+
+.policySection ul {
+  display: grid;
+  gap: 8px;
+  padding-left: 24px;
+}
+
+@media (max-width: 620px) {
+  .header,
+  .hero,
+  .policyShell {
+    width: min(100% - 28px, 980px);
+  }
+
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hero {
+    padding-top: 34px;
+  }
+
+  .policyArticle {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .policySection p,
+  .policySection li {
+    font-size: 16px;
+  }
+}

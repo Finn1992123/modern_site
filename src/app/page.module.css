@@ -1933,6 +1933,7 @@
   gap: 10px;
   min-height: 48px;
   align-items: center;
+  padding: 6px 12px 6px 0;
   border: 0;
   border-radius: 12px;
   background: transparent;
@@ -1941,6 +1942,12 @@
   font: inherit;
   font-weight: 800;
   text-align: left;
+}
+
+.lessonList button strong {
+  flex: 1;
+  color: inherit;
+  font: inherit;
 }
 
 .lessonUnit .lessonList {
@@ -1964,6 +1971,21 @@
 .lessonList .lessonListActive {
   background: rgba(94, 83, 255, 0.1);
   color: var(--royal);
+}
+
+.lessonList button .lessonSolvedTick {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  margin-right: 4px;
+  place-items: center;
+  border-radius: 999px;
+  background: #16a34a;
+  color: white;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 1000;
 }
 
 .lessonContent {
@@ -2333,6 +2355,7 @@
 }
 
 .exerciseCard {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2359,6 +2382,22 @@
   font-size: 15px;
 }
 
+.exerciseCard .exerciseSolvedTick {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 999px;
+  background: #16a34a;
+  color: white;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .exerciseCard button,
 .fillWordForm button {
   min-height: 42px;
@@ -2381,23 +2420,85 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
+  align-items: start;
 }
 
-.fillWordForm input {
-  min-height: 48px;
-  min-width: 0;
-  padding: 10px 14px;
-  border: 1px solid rgba(23, 58, 138, 0.14);
-  border-radius: 12px;
-  background: rgba(247, 249, 255, 0.96);
+.gapFillSentence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  line-height: 1.8;
   color: var(--ink);
-  font: inherit;
+  font-size: 18px;
   font-weight: 800;
 }
 
-.fillWordForm input:focus {
+.gapDropZone {
+  min-width: 74px;
+  max-width: 180px;
+  min-height: 30px;
+  padding: 2px 8px;
+  border: 1px solid rgba(23, 58, 138, 0.14);
+  border-radius: 7px;
+  background: rgba(247, 249, 255, 0.96);
+  color: var(--ink);
+  overflow: hidden;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.gapDropZone:hover,
+.gapDropZone:focus {
   border-color: rgba(23, 58, 138, 0.34);
   outline: 0;
+}
+
+.gapDropZoneCorrect {
+  border-color: rgba(22, 163, 74, 0.42);
+  background: rgba(22, 163, 74, 0.1);
+  color: #166534;
+}
+
+.gapDropZoneWrong {
+  border-color: rgba(220, 38, 38, 0.42);
+  background: rgba(220, 38, 38, 0.08);
+  color: #991b1b;
+}
+
+.gapChoiceBank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.gapChoiceBank button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid rgba(23, 58, 138, 0.14);
+  border-radius: 999px;
+  background: white;
+  color: var(--royal);
+  cursor: grab;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.gapChoiceBank button:active {
+  cursor: grabbing;
+}
+
+.gapChoiceBank button:hover {
+  border-color: rgba(23, 58, 138, 0.28);
+  background: rgba(247, 249, 255, 0.96);
+  color: var(--royal);
 }
 
 .fillWordForm button:disabled {
