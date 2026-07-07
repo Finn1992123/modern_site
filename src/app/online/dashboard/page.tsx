@@ -60,6 +60,12 @@ type CourseLessonRow = {
   sort_order: number;
 };
 
+type LessonHeader = {
+  number: number;
+  title: string;
+  description: string | null;
+};
+
 type LessonVideoRow = {
   id: string;
   title: string;
@@ -440,54 +446,6 @@ const vocabularyItems = [
   { word: "family", translation: "οικογένεια" },
 ];
 
-const quizQuestions = [
-  {
-    question: "How do we say «μητέρα» in English?",
-    answers: ["mother", "father", "brother", "sister"],
-  },
-  {
-    question: "Choose the correct sentence.",
-    answers: ["This is my family.", "This my is family.", "Family this is my.", "My family this is."],
-  },
-  {
-    question: "What does «sister» mean?",
-    answers: ["αδερφή", "πατέρας", "οικογένεια", "αδερφός"],
-  },
-];
-
-const fillWordQuestions = [
-  {
-    sentence: "This is my _____.",
-    hint: "μητέρα",
-    answer: "mother",
-  },
-  {
-    sentence: "This is my _____.",
-    hint: "πατέρας",
-    answer: "father",
-  },
-  {
-    sentence: "This is my _____.",
-    hint: "αδερφή",
-    answer: "sister",
-  },
-];
-
-const listeningQuestions = [
-  {
-    word: "mother",
-    answers: ["mother", "father", "sister", "family"],
-  },
-  {
-    word: "brother",
-    answers: ["brother", "mother", "father", "sister"],
-  },
-  {
-    word: "family",
-    answers: ["family", "father", "brother", "mother"],
-  },
-];
-
 type ExerciseMode = "multipleChoice" | "fillWord" | "listening";
 
 export default function DashboardPage() {
@@ -498,6 +456,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile>({ full_name: "Μαθητή", email: "" });
   const [courses, setCourses] = useState<CourseAccessRow[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<CourseAccessRow | null>(null);
+  const [selectedLessonHeader, setSelectedLessonHeader] = useState<LessonHeader | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const isDashboard = activeView === "dashboard";
@@ -519,6 +478,7 @@ export default function DashboardPage() {
 
   function openCourseLesson(course: CourseAccessRow) {
     setSelectedCourse(course);
+    setSelectedLessonHeader(null);
     setActiveView("lesson");
   }
 
@@ -650,7 +610,9 @@ export default function DashboardPage() {
                 : isMyCourses
                   ? "Τα μαθήματά μου"
                 : isLesson
-                  ? "Lesson 4: This is my family"
+                  ? selectedLessonHeader
+                    ? `Lesson ${selectedLessonHeader.number}: ${selectedLessonHeader.title}`
+                    : "Φόρτωση μαθήματος..."
                   : isProgress
                     ? "Πρόοδος"
                     : "Αγόρασε πακέτο"}
@@ -661,7 +623,7 @@ export default function DashboardPage() {
                 : isMyCourses
                   ? "Δες όλα τα ενεργά μαθήματα και συνέχισε από εκεί που έμεινες."
                   : isLesson
-                    ? "Μάθε λεξιλόγιο για την οικογένεια και κάνε ένα σύντομο quiz."
+                    ? selectedLessonHeader?.description ?? ""
                     : isProgress
                       ? "Δες την πορεία σου, τους βαθμούς και τι χρειάζεται επανάληψη."
                       : "Διάλεξε νέο On Demand πακέτο χωρίς να φύγεις από το dashboard."}
@@ -742,7 +704,11 @@ export default function DashboardPage() {
             />
           </section>
         ) : isLesson ? (
-          <LessonPlayer courseAccess={selectedCourse} onBack={() => setActiveView("dashboard")} />
+          <LessonPlayer
+            courseAccess={selectedCourse}
+            onBack={() => setActiveView("dashboard")}
+            onLessonChange={setSelectedLessonHeader}
+          />
         ) : isProgress ? (
           <DashboardProgress courses={courses} />
         ) : (
@@ -887,9 +853,11 @@ function mapGapFillQuestion(item: LessonGapFillQuestionRow) {
 function LessonPlayer({
   courseAccess,
   onBack,
+  onLessonChange,
 }: {
   courseAccess: CourseAccessRow | null;
   onBack: () => void;
+  onLessonChange: (lesson: LessonHeader | null) => void;
 }) {
   const [openUnits, setOpenUnits] = useState([0]);
   const [courseUnits, setCourseUnits] = useState<CourseUnitRow[]>([]);
@@ -950,47 +918,20 @@ function LessonPlayer({
       : courseAccess && !selectedLesson
         ? []
       : vocabularyItems;
-  const visibleQuizQuestions =
-    lessonMultipleChoice.length > 0
-      ? lessonMultipleChoice.map((item) => ({
-          id: item.id,
-          question: item.sentence,
-          answers: orderedAnswers(item),
-          correctAnswer: getOptionValue(item, item.correct_option),
-        }))
-      : courseAccess && !selectedLesson
-        ? []
-      : quizQuestions.map((item) => ({ id: null, correctAnswer: item.answers[0], ...item }));
-  const visibleFillWordQuestions =
-    lessonGapFill.length > 0
-      ? lessonGapFill.map(mapGapFillQuestion)
-      : courseAccess && !selectedLesson
-        ? []
-        : fillWordQuestions.map((item) => ({
-            id: null,
-            textTemplate: item.sentence.replace("_____", "{{gap1}}"),
-            gapKeys: ["gap1"],
-            hint: item.hint,
-            answers: { gap1: [item.answer] } as Record<string, string[]>,
-            choices: [item.answer],
-          }));
-  const visibleListeningQuestions =
-    lessonListening.length > 0
-      ? lessonListening.map((item) => ({
-          id: item.id,
-          prompt: item.prompt,
-          word: item.spoken_text ?? item.prompt ?? getOptionValue(item, item.correct_option),
-          answers: orderedAnswers(item),
-          correctAnswer: getOptionValue(item, item.correct_option),
-        }))
-      : courseAccess && !selectedLesson
-        ? []
-      : listeningQuestions.map((item) => ({
-          id: null,
-          prompt: null,
-          correctAnswer: item.answers[0],
-          ...item,
-        }));
+  const visibleQuizQuestions = lessonMultipleChoice.map((item) => ({
+    id: item.id,
+    question: item.sentence,
+    answers: orderedAnswers(item),
+    correctAnswer: getOptionValue(item, item.correct_option),
+  }));
+  const visibleFillWordQuestions = lessonGapFill.map(mapGapFillQuestion);
+  const visibleListeningQuestions = lessonListening.map((item) => ({
+    id: item.id,
+    prompt: item.prompt,
+    word: item.spoken_text ?? item.prompt ?? getOptionValue(item, item.correct_option),
+    answers: orderedAnswers(item),
+    correctAnswer: getOptionValue(item, item.correct_option),
+  }));
   const currentPracticeItem = visibleVocabularyItems[practiceIndex];
   const practiceOptions = currentPracticeItem
     ? [
@@ -1187,12 +1128,21 @@ function LessonPlayer({
       setCourseUnits(nextUnits);
       setCourseLessons(nextLessons);
       setSelectedLessonId(nextLessons[0]?.id ?? null);
+      onLessonChange(
+        nextLessons[0]
+          ? {
+              number: 1,
+              title: nextLessons[0].title,
+              description: nextLessons[0].description,
+            }
+          : null,
+      );
       setOpenUnits(nextUnits.length > 0 ? [0] : [0]);
       setIsLessonLoading(false);
     }
 
     loadCourseStructure();
-  }, [courseAccess]);
+  }, [courseAccess, onLessonChange]);
 
   useEffect(() => {
     async function loadLessonContent() {
@@ -1639,6 +1589,22 @@ function LessonPlayer({
                           onClick={() => {
                             if (courseLessons.length > 0) {
                               setSelectedLessonId(item.id);
+                              const nextLesson = courseLessons.find(
+                                (lesson) => lesson.id === item.id,
+                              );
+
+                              onLessonChange(
+                                nextLesson
+                                  ? {
+                                      number:
+                                        courseLessons.findIndex(
+                                          (lesson) => lesson.id === nextLesson.id,
+                                        ) + 1,
+                                      title: nextLesson.title,
+                                      description: nextLesson.description,
+                                    }
+                                  : null,
+                              );
                             }
                           }}
                           type="button"
@@ -1688,6 +1654,9 @@ function LessonPlayer({
               type="video/mp4"
             />
           </video>
+          <button className={styles.lessonPdfDownload} type="button">
+            Κατεβάστε PDF
+          </button>
         </section>
 
         <section className={styles.lessonBlock}>
@@ -1872,43 +1841,55 @@ function LessonPlayer({
           </div>
         ) : null}
 
-        <section className={styles.lessonBlock}>
-          <h3>Ασκήσεις</h3>
-          <div className={styles.exerciseGrid}>
-            <article className={styles.exerciseCard}>
-              <div>
-                <strong>Πολλαπλής επιλογής</strong>
-                <span>Διάλεξε τη σωστή απάντηση.</span>
-              </div>
-              {isMultipleChoiceSolved ? <span className={styles.exerciseSolvedTick}>✓</span> : null}
-              <button type="button" onClick={() => startExercise("multipleChoice")}>
-                Έναρξη
-              </button>
-            </article>
+        {visibleQuizQuestions.length > 0 ||
+        visibleFillWordQuestions.length > 0 ||
+        visibleListeningQuestions.length > 0 ? (
+          <section className={styles.lessonBlock}>
+            <h3>Ασκήσεις</h3>
+            <div className={styles.exerciseGrid}>
+              {visibleQuizQuestions.length > 0 ? (
+                <article className={styles.exerciseCard}>
+                  <div>
+                    <strong>Πολλαπλής επιλογής</strong>
+                    <span>Διάλεξε τη σωστή απάντηση.</span>
+                  </div>
+                  {isMultipleChoiceSolved ? (
+                    <span className={styles.exerciseSolvedTick}>✓</span>
+                  ) : null}
+                  <button type="button" onClick={() => startExercise("multipleChoice")}>
+                    Έναρξη
+                  </button>
+                </article>
+              ) : null}
 
-            <article className={styles.exerciseCard}>
-              <div>
-                <strong>Σύρε τις λέξεις</strong>
-                <span>Βάλε κάθε επιλογή στο σωστό κενό.</span>
-              </div>
-              {isGapFillSolved ? <span className={styles.exerciseSolvedTick}>✓</span> : null}
-              <button type="button" onClick={() => startExercise("fillWord")}>
-                Έναρξη
-              </button>
-            </article>
+              {visibleFillWordQuestions.length > 0 ? (
+                <article className={styles.exerciseCard}>
+                  <div>
+                    <strong>Σύρε τις λέξεις</strong>
+                    <span>Βάλε κάθε επιλογή στο σωστό κενό.</span>
+                  </div>
+                  {isGapFillSolved ? <span className={styles.exerciseSolvedTick}>✓</span> : null}
+                  <button type="button" onClick={() => startExercise("fillWord")}>
+                    Έναρξη
+                  </button>
+                </article>
+              ) : null}
 
-            <article className={styles.exerciseCard}>
-              <div>
-                <strong>Άκου και διάλεξε</strong>
-                <span>Άκου τη λέξη και βρες τη σωστή.</span>
-              </div>
-              {isListeningSolved ? <span className={styles.exerciseSolvedTick}>✓</span> : null}
-              <button type="button" onClick={() => startExercise("listening")}>
-                Έναρξη
-              </button>
-            </article>
-          </div>
-        </section>
+              {visibleListeningQuestions.length > 0 ? (
+                <article className={styles.exerciseCard}>
+                  <div>
+                    <strong>Άκου και διάλεξε</strong>
+                    <span>Άκου τη λέξη και βρες τη σωστή.</span>
+                  </div>
+                  {isListeningSolved ? <span className={styles.exerciseSolvedTick}>✓</span> : null}
+                  <button type="button" onClick={() => startExercise("listening")}>
+                    Έναρξη
+                  </button>
+                </article>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
 
         {exerciseOpen ? (
           <div

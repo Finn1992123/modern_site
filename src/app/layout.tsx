@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.modernlanguage.gr"),
   title: "Modern Language | Κέντρο Ξένων Γλωσσών στον Γέρακα",
   description:
     "Κέντρο ξένων γλωσσών Modern Language στον Γέρακα. Αγγλικά, Γαλλικά, Γερμανικά, Ισπανικά, πιστοποιήσεις, app μαθητή και δωρεάν αξιολόγηση επιπέδου.",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({

@@ -593,6 +593,7 @@
   font: inherit;
   font-size: 17px;
   font-weight: 900;
+  text-decoration: none;
   box-shadow: 0 16px 42px rgba(23, 58, 138, 0.08);
 }
 
@@ -619,6 +620,7 @@
   margin-top: 12px;
 }
 
+.onDemandIntro h1,
 .onDemandIntro h2 {
   color: var(--blue);
   font-size: clamp(28px, 3.2vw, 46px);
@@ -630,6 +632,15 @@
   color: var(--muted);
   font-size: clamp(18px, 2vw, 22px);
   line-height: 1.55;
+}
+
+.onDemandSkills {
+  display: grid;
+  gap: 6px;
+  padding-left: 24px;
+  color: var(--muted);
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.45;
 }
 
 .onDemandLevelsTitle {
@@ -675,6 +686,7 @@
   font-weight: 1000;
 }
 
+.onDemandLevelCard h2,
 .onDemandLevelCard h3 {
   color: var(--blue);
   font-size: 23px;
@@ -2072,6 +2084,23 @@
   border-radius: 14px;
   background: #0b1220;
   object-fit: cover;
+}
+
+.lessonPdfDownload {
+  width: fit-content;
+  margin-top: 14px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--blue);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.lessonPdfDownload:hover {
+  filter: brightness(1.08);
 }
 
 .vocabularyGrid {
