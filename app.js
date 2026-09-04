@@ -1,4 +1,16 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+const { execFileSync } = require("node:child_process");
+
+if (process.platform === "linux") {
+  try {
+    execFileSync("taskset", ["-p", "-c", "0-3", String(process.pid)], {
+      stdio: "inherit",
+    });
+  } catch (error) {
+    console.error("taskset failed:", error.message);
+  }
+}
+
 const { createServer } = require("node:http");
 const next = require("next");
 
